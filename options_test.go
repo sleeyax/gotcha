@@ -14,7 +14,7 @@ func TestOptions_Merge(t *testing.T) {
 
 	left := NewDefaultOptions()
 	right := &Options{
-		Url:    &url.URL{Host: "example.com"},
+		URL:    &url.URL{Host: "example.com"},
 		Retry:  true,
 		Method: "POST",
 		Headers: http.Header{
@@ -44,8 +44,8 @@ func TestOptions_Merge(t *testing.T) {
 	}
 
 	// test merged options fields
-	if u := options.Url; u != right.Url {
-		t.Errorf(tests.MismatchFormat, "url", right.Url, u)
+	if u := options.URL; u != right.URL {
+		t.Errorf(tests.MismatchFormat, "url", right.URL, u)
 	}
 
 	if r := options.Retry; r != right.Retry {

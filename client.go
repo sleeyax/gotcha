@@ -25,15 +25,34 @@ func (c *Client) Extend(options *Options) (*Client, error) {
 }
 
 func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
-	u, err := urlPkg.Parse(url)
+	u, err := c.getFullUrl(url)
 	if err != nil {
 		return nil, err
 	}
 
-	c.options.Url = u
+	c.options.FullUrl = u
 	c.options.Method = method
 
-	return c.options.Adapter.DoRequest(c.options)
+	res, err := c.options.Adapter.DoRequest(c.options)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// getFullUrl computes the actual request url by combining prefixUrl and url.
+func (c *Client) getFullUrl(url string) (*urlPkg.URL, error) {
+	if c.options.PrefixURL == "" {
+		return urlPkg.Parse(url)
+	}
+
+	u, err := urlPkg.Parse(c.options.PrefixURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.Parse(url)
 }
 
 func (c *Client) Get(url string) (*http.Response, error) {

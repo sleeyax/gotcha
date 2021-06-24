@@ -28,11 +28,15 @@ type RedirectOptions struct {
 
 type Options struct {
 	// Adapter is an adapter that will be used by gotcha to make the actual request.
-	// Implement your own Adapter or use the RoundTripperAdapter,  to get started.
+	// Implement your own Adapter or use the RequestAdapter to get started.
 	Adapter Adapter
 
 	// Request URL.
-	Url *url.URL
+	URL *url.URL
+
+	// FullUrl is the URL that was computed form PrefixURL and URL.
+	// You shouldn't need to modify this in most cases.
+	FullUrl *url.URL
 
 	// Retry on failure.
 	Retry bool
@@ -74,7 +78,7 @@ type Options struct {
 	CookieJar http.CookieJar
 
 	// Query string that will be added to the request URL.
-	// This will override the query string in Url.
+	// This will override the query string in URL.
 	SearchParams url.Values
 
 	// Milliseconds to wait for the server to end the response before aborting the request.
@@ -94,7 +98,7 @@ func NewDefaultOptions() *Options {
 	jar, _ := cookiejar.New(&cookiejar.Options{})
 
 	return &Options{
-		Url:       nil,
+		URL:       nil,
 		Retry:     true,
 		Method:    "GET",
 		PrefixURL: "",

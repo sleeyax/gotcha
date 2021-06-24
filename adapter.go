@@ -26,7 +26,7 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 	if ra.Request == nil {
 		ra.Request = &http.Request{
 			Method: options.Method,
-			URL:    options.Url,
+			URL:    options.FullUrl,
 			Header: options.Headers,
 			Body:   options.Body,
 		}
@@ -44,7 +44,7 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 	return res, nil
 }
 
-// mockAdapter is only used for testing.
+// mockAdapter is only used for testing Adapter.
 type mockAdapter struct {
 	OnCalledDoRequest func(*Options)
 }
