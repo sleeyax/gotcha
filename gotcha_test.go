@@ -15,7 +15,6 @@ func TestDoRequest(t *testing.T) {
 			requested = true
 		}},
 	})
-
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +45,17 @@ func TestPost(t *testing.T) {
 		}}},
 		&Options{Body: createBody(expectedBody)},
 	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
+func TestGet(t *testing.T) {
+	_, err := Get("https://example.com", &Options{Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) {
+		if options.Method != "GET" {
+			t.Fatalf(tests.MismatchFormat, "method", "GET", options.Method)
+		}
+	}}})
 	if err != nil {
 		t.Fatal(err)
 	}
