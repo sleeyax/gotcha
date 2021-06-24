@@ -1,9 +1,16 @@
 package gotcha
 
 import (
+	"errors"
+	"github.com/sleeyax/gotcha/internal/utils"
 	"net/http"
 	urlPkg "net/url"
+	"strconv"
+	"strings"
+	"time"
 )
+
+var RequestFailedError = errors.New("request failed and max retries exceeded")
 
 type Client struct {
 	options *Options
@@ -33,12 +40,54 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 	c.options.FullUrl = u
 	c.options.Method = method
 
+	retry := func(res *http.Response, err error) (*http.Response, error) {
+		timeout, e := c.getTimeout(res)
+		if e != nil {
+			return nil, e
+		}
+		timeout = c.options.RetryOptions.CalculateTimeout(c.options.retries, c.options.RetryOptions, timeout, err)
+		time.Sleep(timeout)
+		c.options.retries++
+		return c.DoRequest(url, method)
+	}
+
 	res, err := c.options.Adapter.DoRequest(c.options)
 	if err != nil {
+		if c.options.Retry && c.options.retries < c.options.RetryOptions.Limit && utils.StringArrayContains(c.options.RetryOptions.ErrorCodes, err.Error()) {
+			return retry(res, err)
+		}
 		return nil, err
 	}
 
+	if c.options.Retry && utils.IntArrayContains(c.options.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(c.options.RetryOptions.Methods, method) {
+		if c.options.retries >= c.options.RetryOptions.Limit {
+			return res, RequestFailedError
+		}
+		return retry(res, nil)
+	}
+
 	return res, nil
+}
+
+func (c *Client) getTimeout(response *http.Response) (time.Duration, error) {
+	retryAfter := strings.TrimSpace(response.Header.Get("retry-after"))
+
+	// response header doesn't specify timeout, default to request timeout
+	if retryAfter == "" || c.options.RetryOptions.RetryAfter == false {
+		return c.options.Timeout, nil
+	}
+
+	// retryAfter is <delay-seconds>
+	if delay, err := strconv.Atoi(retryAfter); err == nil {
+		return time.Second * time.Duration(delay), nil
+	}
+
+	// retryAfter is <http-date>
+	dateTime, err := http.ParseTime(retryAfter)
+	if err == nil {
+		return dateTime.Sub(time.Now()), nil
+	}
+	return 0, err
 }
 
 // getFullUrl computes the actual request url by combining prefixUrl and url.

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"time"
 )
 
 type RedirectOptions struct {
@@ -40,6 +41,12 @@ type Options struct {
 
 	// Retry on failure.
 	Retry bool
+
+	// Additional configuration options for Retry.
+	RetryOptions *RetryOptions
+
+	// Amount of retries that have been done so far.
+	retries int
 
 	// The HTTP method used to make the request.
 	Method string
@@ -81,8 +88,8 @@ type Options struct {
 	// This will override the query string in URL.
 	SearchParams url.Values
 
-	// Milliseconds to wait for the server to end the response before aborting the request.
-	Timeout int
+	// Duration to wait for the server to end the response before aborting the request.
+	Timeout time.Duration
 
 	// Defines if redirect responses should be followed automatically.
 	FollowRedirect bool
@@ -94,19 +101,46 @@ type Options struct {
 	Hooks Hooks
 }
 
+type RetryOptions struct {
+	// Max number of times to retry.
+	Limit int
+
+	// Only retry when the request HTTP method equals one of these Methods.
+	Methods []string
+
+	// Only retry when the response HTTP status code equals one of these StatusCodes.
+	StatusCodes []int
+
+	// Only retry on error when the error message contains one of these ErrorCodes.
+	ErrorCodes []string
+
+	// Respect the response 'Retry-After' header, if set.
+	//
+	// If RetryAfter is false or the response headers don't contain this header,
+	// it will default to the configured request Timeout.
+	//
+	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+	RetryAfter bool
+
+	// CalculateTimeout is a function that computes the timeout to use between retries.
+	// By default 'computedTimeout' will be used as timeout value.
+	CalculateTimeout func(retries int, retryOptions *RetryOptions, computedTimeout time.Duration, error error) time.Duration
+}
+
 func NewDefaultOptions() *Options {
 	jar, _ := cookiejar.New(&cookiejar.Options{})
 
 	return &Options{
-		URL:       nil,
-		Retry:     true,
-		Method:    "GET",
-		PrefixURL: "",
-		Headers:   make(http.Header),
-		Body:      nil,
-		Json:      "",
-		Form:      nil,
-		Context:   nil,
+		URL:          nil,
+		Retry:        true,
+		RetryOptions: NewDefaultRetryOptions(),
+		Method:       "GET",
+		PrefixURL:    "",
+		Headers:      make(http.Header),
+		Body:         nil,
+		Json:         "",
+		Form:         nil,
+		Context:      nil,
 		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
 			var result map[string]interface{}
 			if err := json.Unmarshal(data, &result); err != nil {
@@ -123,7 +157,7 @@ func NewDefaultOptions() *Options {
 		},
 		CookieJar:      jar,
 		SearchParams:   nil,
-		Timeout:        10000,
+		Timeout:        time.Second * 10,
 		FollowRedirect: false,
 		RedirectOptions: RedirectOptions{
 			HandleSeeOther: true,
@@ -132,6 +166,19 @@ func NewDefaultOptions() *Options {
 		},
 		Hooks:   Hooks{},
 		Adapter: &RequestAdapter{},
+	}
+}
+
+func NewDefaultRetryOptions() *RetryOptions {
+	return &RetryOptions{
+		Limit:       2,
+		Methods:     []string{http.MethodGet, http.MethodPut, http.MethodHead, http.MethodDelete, http.MethodOptions, http.MethodTrace},
+		StatusCodes: []int{408, 413, 429, 500, 502, 503, 504, 521, 522, 524},
+		ErrorCodes:  []string{"ETIMEDOUT", "ECONNRESET", "EADDRINUSE", "ECONNREFUSED", "EPIPE", "ENOTFOUND", "ENETUNREACH", "EAI_AGAIN"},
+		RetryAfter:  true,
+		CalculateTimeout: func(retries int, retryOptions *RetryOptions, computedTimeout time.Duration, error error) time.Duration {
+			return computedTimeout
+		},
 	}
 }
 
