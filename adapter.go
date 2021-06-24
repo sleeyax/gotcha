@@ -43,3 +43,13 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 
 	return res, nil
 }
+
+// mockAdapter is only used for testing.
+type mockAdapter struct {
+	OnCalledDoRequest func()
+}
+
+func (ma *mockAdapter) DoRequest(_ *Options) (*http.Response, error) {
+	ma.OnCalledDoRequest()
+	return &http.Response{StatusCode: 200}, nil
+}

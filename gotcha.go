@@ -2,53 +2,39 @@ package gotcha
 
 import (
 	"net/http"
-	urlPkg "net/url"
 )
 
-func New(url string, method string, options *Options) (*http.Response, error) {
-	defaultOptions := NewDefaultOptions()
+func DoRequest(url string, method string, options ...*Options) (*http.Response, error) {
+	o := &Options{}
+	var err error
 
-	// set url
-	u, err := urlPkg.Parse(url)
+	for _, option := range options {
+		o, err = o.Extend(option)
+	}
+
+	client, err := NewClient(o)
 	if err != nil {
 		return nil, err
 	}
-	options.Url = u
-
-	// set method
-	options.Method = method
-
-	// merge options
-	mergedOptions, err := defaultOptions.Extend(options)
-	if err != nil {
-		return nil, err
-	}
-
-	// do request
-	res, err := mergedOptions.Adapter.DoRequest(mergedOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return client.DoRequest(url, method)
 }
 
-func Get(url string, options *Options) (*http.Response, error) {
-	return New(url, "GET", options)
+func Get(url string, options ...*Options) (*http.Response, error) {
+	return DoRequest(url, "GET", options...)
 }
 
-func Post(url string, options *Options) (*http.Response, error) {
-	return New(url, "POST", options)
+func Post(url string, options ...*Options) (*http.Response, error) {
+	return DoRequest(url, "POST", options...)
 }
 
-func Put(url string, options *Options) (*http.Response, error) {
-	return New(url, "PUT", options)
+func Put(url string, options ...*Options) (*http.Response, error) {
+	return DoRequest(url, "PUT", options...)
 }
 
-func Patch(url string, options *Options) (*http.Response, error) {
-	return New(url, "PATCH", options)
+func Patch(url string, options ...*Options) (*http.Response, error) {
+	return DoRequest(url, "PATCH", options...)
 }
 
-func Delete(url string, options *Options) (*http.Response, error) {
-	return New(url, "DELETE", options)
+func Delete(url string, options ...*Options) (*http.Response, error) {
+	return DoRequest(url, "DELETE", options...)
 }

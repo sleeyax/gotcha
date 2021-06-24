@@ -3,24 +3,14 @@ package gotcha
 import (
 	"fmt"
 	"github.com/sleeyax/gotcha/internal/tests"
-	"net/http"
 	"testing"
 )
 
-type MockAdapter struct {
-	OnCalledDoRequest func()
-}
-
-func (ma *MockAdapter) DoRequest(options *Options) (*http.Response, error) {
-	ma.OnCalledDoRequest()
-	return &http.Response{StatusCode: 200}, nil
-}
-
-func TestNew(t *testing.T) {
+func TestDoRequest(t *testing.T) {
 	var requested bool
 
-	res, err := New("https://example.com", "GET", &Options{
-		Adapter: &MockAdapter{OnCalledDoRequest: func() {
+	res, err := DoRequest("https://example.com", "GET", &Options{
+		Adapter: &mockAdapter{OnCalledDoRequest: func() {
 			requested = true
 		}},
 	})
