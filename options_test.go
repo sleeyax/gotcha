@@ -1,6 +1,7 @@
 package gotcha
 
 import (
+	urlValues "github.com/Sleeyax/urlValues"
 	"github.com/sleeyax/gotcha/internal/tests"
 	"io"
 	"net/http"
@@ -23,8 +24,10 @@ func TestOptions_Merge(t *testing.T) {
 		Body:          io.NopCloser(strings.NewReader("hello world")),
 		UnmarshalJson: nil,
 		MarshalJson:   nil,
-		SearchParams: url.Values{
-			"abc": {"def"},
+		SearchParams: urlValues.Values{
+			"xyz":              {"123"},
+			"abc":              {"def"},
+			urlValues.OrderKey: {"xyz", "abc"},
 		},
 		Timeout:         1000,
 		FollowRedirect:  false,
@@ -72,7 +75,7 @@ func TestOptions_Merge(t *testing.T) {
 		t.Errorf("Any of the json marshal functions shouldn't be nil.")
 	}
 
-	if sp := options.SearchParams.Encode(); sp != "abc=def" {
+	if sp := options.SearchParams.EncodeWithOrder(); sp != "xyz=123&abc=def" {
 		t.Errorf(tests.MismatchFormat, "search parameters", "abc=def", sp)
 	}
 

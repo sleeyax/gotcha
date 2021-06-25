@@ -2,6 +2,7 @@ package gotcha
 
 import (
 	"encoding/json"
+	"github.com/Sleeyax/urlValues"
 	"github.com/imdario/mergo"
 	"io"
 	"net/http"
@@ -86,7 +87,7 @@ type Options struct {
 
 	// Query string that will be added to the request URL.
 	// This will override the query string in URL.
-	SearchParams url.Values
+	SearchParams urlValues.Values
 
 	// Duration to wait for the server to end the response before aborting the request.
 	Timeout time.Duration

@@ -40,6 +40,12 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 	c.options.FullUrl = u
 	c.options.Method = method
 
+	if sp := c.options.SearchParams; len(sp) != 0 {
+		c.options.FullUrl.RawQuery = sp.EncodeWithOrder()
+	}
+
+	// TODO: body, json, form
+
 	retry := func(res *http.Response, err error) (*http.Response, error) {
 		timeout, e := c.getTimeout(res)
 		if e != nil {
@@ -65,6 +71,8 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 		}
 		return retry(res, nil)
 	}
+
+	// TODO: cookiejar
 
 	return res, nil
 }
