@@ -2,7 +2,6 @@ package gotcha
 
 import (
 	bytes2 "bytes"
-	"encoding/json"
 	"github.com/Sleeyax/urlValues"
 	"io"
 	"strings"
@@ -17,6 +16,12 @@ type Body struct {
 
 	// Form data that will be converted to a query string.
 	Form urlValues.Values
+
+	// A function used to parse JSON responses.
+	UnmarshalJson func(data []byte) (map[string]interface{}, error)
+
+	// A function used to stringify the body of JSON requests.
+	MarshalJson func(json map[string]interface{}) ([]byte, error)
 }
 
 // Close clears the Content, Form and Json fields.
@@ -30,19 +35,18 @@ func (b *Body) Close() {
 }
 
 // Parse parses Form or Json (in that order) into Content.
-// The resulting Content value will also be returned as a string by this function.
-func (b *Body) Parse() (string, error) {
+func (b *Body) Parse() error {
 	if len(b.Form) != 0 {
 		encoded := b.Form.EncodeWithOrder()
 		b.Content = io.NopCloser(strings.NewReader(encoded))
-		return encoded, nil
+		return nil
 	} else if j := b.Json; len(j) != 0 {
-		bytes, err := json.Marshal(j)
+		bytes, err := b.MarshalJson(j)
 		if err != nil {
-			return "", err
+			return err
 		}
 		b.Content = io.NopCloser(bytes2.NewReader(bytes))
-		return string(bytes), nil
+		return nil
 	}
-	return "", nil
+	return nil
 }

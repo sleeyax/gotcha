@@ -69,12 +69,6 @@ type Options struct {
 	// It's useful for storing authentication tokens for example.
 	Context interface{}
 
-	// A function used to parse JSON responses.
-	UnmarshalJson func(data []byte) (map[string]interface{}, error)
-
-	// A function used to stringify the body of JSON requests.
-	MarshalJson func(json map[string]interface{}) ([]byte, error)
-
 	// Automatically store & parse cookies.
 	CookieJar http.CookieJar
 
@@ -131,22 +125,26 @@ func NewDefaultOptions() *Options {
 		Method:       "GET",
 		PrefixURL:    "",
 		Headers:      make(http.Header),
-		Body:         Body{},
-		Context:      nil,
-		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
-			var result map[string]interface{}
-			if err := json.Unmarshal(data, &result); err != nil {
-				return nil, err
-			}
-			return result, nil
+		Body: Body{
+			Content: nil,
+			Json:    nil,
+			Form:    nil,
+			UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
+				var result map[string]interface{}
+				if err := json.Unmarshal(data, &result); err != nil {
+					return nil, err
+				}
+				return result, nil
+			},
+			MarshalJson: func(data map[string]interface{}) ([]byte, error) {
+				result, err := json.Marshal(data)
+				if err != nil {
+					return nil, err
+				}
+				return result, nil
+			},
 		},
-		MarshalJson: func(data map[string]interface{}) ([]byte, error) {
-			result, err := json.Marshal(data)
-			if err != nil {
-				return nil, err
-			}
-			return result, nil
-		},
+		Context:        nil,
 		CookieJar:      jar,
 		SearchParams:   nil,
 		Timeout:        time.Second * 10,
