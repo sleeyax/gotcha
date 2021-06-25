@@ -21,7 +21,7 @@ func TestOptions_Merge(t *testing.T) {
 		Headers: http.Header{
 			"Foo": {"Bar"},
 		},
-		Body:          io.NopCloser(strings.NewReader("hello world")),
+		Body:          Body{Content: io.NopCloser(strings.NewReader("hello world"))},
 		UnmarshalJson: nil,
 		MarshalJson:   nil,
 		SearchParams: urlValues.Values{
@@ -63,7 +63,7 @@ func TestOptions_Merge(t *testing.T) {
 		t.Errorf(tests.MismatchFormat, "headers", "Bar", h)
 	}
 
-	optionsBody, err := io.ReadAll(options.Body)
+	optionsBody, err := io.ReadAll(options.Body.Content)
 	if err != nil {
 		t.Error(err)
 	}

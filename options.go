@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/Sleeyax/urlValues"
 	"github.com/imdario/mergo"
-	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -60,17 +59,11 @@ type Options struct {
 	// Request headers.
 	Headers http.Header
 
-	// Request body.
+	// Request Body.
 	//
-	// Body cannot be used with the Json or Form options.
-	Body io.ReadCloser
-
-	// JSON request Body.
-	Json map[string]interface{}
-
-	// Form body request.
-	// It will be converted to a query string and override Body.
-	Form urlValues.Values
+	// Body will be set in the following order,
+	// whichever value is found to be of non-zero value first: Body.Form -> Body.Json -> Body.Content.
+	Body Body
 
 	// Can contain custom user data.
 	// It's useful for storing authentication tokens for example.
@@ -138,9 +131,7 @@ func NewDefaultOptions() *Options {
 		Method:       "GET",
 		PrefixURL:    "",
 		Headers:      make(http.Header),
-		Body:         nil,
-		Json:         nil,
-		Form:         nil,
+		Body:         Body{},
 		Context:      nil,
 		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
 			var result map[string]interface{}
@@ -190,12 +181,4 @@ func (o *Options) Extend(options *Options) (*Options, error) {
 		return nil, err
 	}
 	return dst, nil
-}
-
-// ClearBody clears the Body, Form and Json fields.
-func (o *Options) ClearBody() {
-	_ = o.Body.Close()
-	o.Body = nil
-	o.Form = nil
-	o.Json = nil
 }

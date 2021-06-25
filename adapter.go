@@ -28,7 +28,7 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 			Method: options.Method,
 			URL:    options.FullUrl,
 			Header: options.Headers,
-			Body:   options.Body,
+			Body:   options.Body.Content,
 		}
 	}
 
