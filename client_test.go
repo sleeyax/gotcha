@@ -1,9 +1,13 @@
 package gotcha
 
 import (
+	"encoding/json"
+	"github.com/Sleeyax/urlValues"
 	"github.com/sleeyax/gotcha/internal/tests"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -71,4 +75,48 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 	if retriesLeft != 0 {
 		t.Fatalf("there should be 0 retries left, but there are %d", retriesLeft)
 	}
+}
+
+func TestClient_DoRequest_Body(t *testing.T) {
+	url := "https://example.com"
+	var testType string
+	var wantedBody string
+
+	client, err := NewClient(&Options{
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
+			bodyBytes, err := io.ReadAll(options.Body)
+			if err != nil {
+				t.Fatalf("failed to read body while testing %s", testType)
+			}
+			body := string(bodyBytes)
+			if body != wantedBody {
+				t.Fatalf(tests.MismatchFormat, testType, wantedBody, body)
+			}
+			return &http.Response{StatusCode: 200}
+		}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testType = "raw body"
+	wantedBody = "hello world!"
+	client.options.Body = io.NopCloser(strings.NewReader(wantedBody))
+	client.Post(url)
+
+	testType = "form"
+	wantedBody = "foo=bar&abc=def"
+	client.options.Form = urlValues.Values{
+		"foo":              {"bar"},
+		"abc":              {"def"},
+		urlValues.OrderKey: []string{"foo", "abc"},
+	}
+	client.Post(url)
+
+	testType = "json"
+	wantedBody = `{"a":"b","c":["d","e","f"],"g":{"h":"i"}}`
+	var result map[string]interface{}
+	json.Unmarshal([]byte(wantedBody), &result)
+	client.options.Json = result
+	client.Post(url)
 }

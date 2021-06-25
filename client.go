@@ -1,8 +1,10 @@
 package gotcha
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/sleeyax/gotcha/internal/utils"
+	"io"
 	"net/http"
 	urlPkg "net/url"
 	"strconv"
@@ -44,7 +46,18 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 		c.options.FullUrl.RawQuery = sp.EncodeWithOrder()
 	}
 
-	// TODO: body, json, form
+	parsedBody, err := c.parseBody()
+	if err != nil {
+		return nil, err
+	}
+
+	if parsedBody != "" {
+		c.options.Body = io.NopCloser(strings.NewReader(parsedBody))
+	}
+
+	if c.options.Body != nil {
+		defer c.options.ClearBody()
+	}
 
 	retry := func(res *http.Response, err error) (*http.Response, error) {
 		timeout, e := c.getTimeout(res)
@@ -75,6 +88,19 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 	// TODO: cookiejar
 
 	return res, nil
+}
+
+func (c *Client) parseBody() (string, error) {
+	if len(c.options.Form) != 0 {
+		return c.options.Form.EncodeWithOrder(), nil
+	} else if j := c.options.Json; len(j) != 0 {
+		bytes, err := json.Marshal(j)
+		if err != nil {
+			return "", err
+		}
+		return string(bytes), nil
+	}
+	return "", nil
 }
 
 func (c *Client) getTimeout(response *http.Response) (time.Duration, error) {

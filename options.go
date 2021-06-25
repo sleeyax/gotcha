@@ -66,11 +66,11 @@ type Options struct {
 	Body io.ReadCloser
 
 	// JSON request Body.
-	Json string
+	Json map[string]interface{}
 
 	// Form body request.
-	// It will be converted to a query string.
-	Form url.Values
+	// It will be converted to a query string and override Body.
+	Form urlValues.Values
 
 	// Can contain custom user data.
 	// It's useful for storing authentication tokens for example.
@@ -139,7 +139,7 @@ func NewDefaultOptions() *Options {
 		PrefixURL:    "",
 		Headers:      make(http.Header),
 		Body:         nil,
-		Json:         "",
+		Json:         nil,
 		Form:         nil,
 		Context:      nil,
 		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
@@ -190,4 +190,12 @@ func (o *Options) Extend(options *Options) (*Options, error) {
 		return nil, err
 	}
 	return dst, nil
+}
+
+// ClearBody clears the Body, Form and Json fields.
+func (o *Options) ClearBody() {
+	_ = o.Body.Close()
+	o.Body = nil
+	o.Form = nil
+	o.Json = nil
 }
