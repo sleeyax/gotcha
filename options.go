@@ -33,10 +33,11 @@ type Options struct {
 	// Implement your own Adapter or use the RequestAdapter to get started.
 	Adapter Adapter
 
-	// Request URL.
-	URL *url.URL
+	// Request URI.
+	// Can be relative or absolute.
+	URI string
 
-	// FullUrl is the URL that was computed form PrefixURL and URL.
+	// FullUrl is the URI that was computed form PrefixURL and URI.
 	// You shouldn't need to modify this in most cases.
 	FullUrl *url.URL
 
@@ -53,7 +54,7 @@ type Options struct {
 	Method string
 
 	// When specified, prefixUrl will be prepended to the url.
-	// The prefix can be any valid URL, either relative or absolute.
+	// The prefix can be any valid URI, either relative or absolute.
 	// A trailing slash / is optional - one will be added automatically.
 	PrefixURL string
 
@@ -80,8 +81,8 @@ type Options struct {
 	// If CookieJar is nil, cookies are only sent if they are explicitly set on the Request.
 	CookieJar http.CookieJar
 
-	// Query string that will be added to the request URL.
-	// This will override the query string in URL.
+	// Query string that will be added to the request URI.
+	// This will override the query string in URI.
 	SearchParams urlValues.Values
 
 	// Duration to wait for the server to end the response before aborting the request.
@@ -130,7 +131,7 @@ func NewDefaultOptions() *Options {
 	jar, _ := cookiejar.New(&cookiejar.Options{})
 
 	return &Options{
-		URL:          nil,
+		URI:          "",
 		Retry:        true,
 		RetryOptions: NewDefaultRetryOptions(),
 		Method:       "GET",

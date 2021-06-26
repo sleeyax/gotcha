@@ -5,7 +5,6 @@ import (
 	"github.com/sleeyax/gotcha/internal/tests"
 	"io"
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 )
@@ -15,7 +14,7 @@ func TestOptions_Merge(t *testing.T) {
 
 	left := NewDefaultOptions()
 	right := &Options{
-		URL:    &url.URL{Host: "example.com"},
+		URI:    "example.com",
 		Retry:  true,
 		Method: "POST",
 		Headers: http.Header{
@@ -45,8 +44,8 @@ func TestOptions_Merge(t *testing.T) {
 	}
 
 	// test merged options fields
-	if u := options.URL; u != right.URL {
-		t.Errorf(tests.MismatchFormat, "url", right.URL, u)
+	if u := options.URI; u != right.URI {
+		t.Errorf(tests.MismatchFormat, "url", right.URI, u)
 	}
 
 	if r := options.Retry; r != right.Retry {

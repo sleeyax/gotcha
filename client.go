@@ -35,6 +35,7 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 
 	c.options.FullUrl = u
 	c.options.Method = method
+	c.options.URI = url
 
 	if sp := c.options.SearchParams; len(sp) != 0 {
 		c.options.FullUrl.RawQuery = sp.EncodeWithOrder()
@@ -99,7 +100,6 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 
 		c.updateRequestCookies(res)
 		c.options.PrefixURL = ""
-		c.options.URL = redirectUrl
 		c.options.redirectUrls = append(c.options.redirectUrls, redirectUrl)
 
 		// TODO: call redirect hook
