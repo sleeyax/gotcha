@@ -85,7 +85,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 	var wantedBody string
 
 	client, err := NewClient(&Options{
-		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
 			bodyBytes, err := io.ReadAll(options.Body)
 			if err != nil {
 				t.Fatalf("failed to read body while testing %s", testType)
@@ -94,7 +94,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 			if body != wantedBody {
 				t.Fatalf(tests.MismatchFormat, testType, wantedBody, body)
 			}
-			return &http.Response{StatusCode: 200}
+			return NewResponse(&http.Response{StatusCode: 200})
 		}},
 	})
 	if err != nil {
@@ -117,7 +117,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 
 	testType = "json"
 	wantedBody = `{"a":"b","c":["d","e","f"],"g":{"h":"i"}}`
-	var result map[string]interface{}
+	var result JSON
 	json.Unmarshal([]byte(wantedBody), &result)
 	client.options.Json = result
 	client.Post(url)
@@ -180,7 +180,7 @@ func TestClient_DoRequest_Cookies(t *testing.T) {
 	client, _ = client.Extend(&Options{
 		CookieJar: jar,
 		Headers:   headers,
-		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
 			requestAdapter := RequestAdapter{}
 			res, err := requestAdapter.DoRequest(options)
 			if err != nil {

@@ -13,6 +13,11 @@ import (
 
 var RedirectStatusCodes = []int{300, 301, 302, 303, 304, 307, 308}
 
+type JSON map[string]interface{}
+
+type UnmarshalJsonFunc = func(data []byte) (JSON, error)
+type MarshalJsonFunc = func(json JSON) ([]byte, error)
+
 type RedirectOptions struct {
 	// Specifies if redirects should be rewritten as GET.
 	//
@@ -70,16 +75,16 @@ type Options struct {
 	Body io.ReadCloser
 
 	// JSON data.
-	Json map[string]interface{}
+	Json JSON
 
 	// Form data that will be converted to a query string.
 	Form urlValues.Values
 
 	// A function used to parse JSON responses.
-	UnmarshalJson func(data []byte) (map[string]interface{}, error)
+	UnmarshalJson UnmarshalJsonFunc
 
 	// A function used to stringify the body of JSON requests.
-	MarshalJson func(json map[string]interface{}) ([]byte, error)
+	MarshalJson MarshalJsonFunc
 
 	// Can contain custom user data.
 	// This can be  useful for storing authentication tokens for example.
@@ -154,14 +159,14 @@ func NewDefaultOptions() *Options {
 		Body:         nil,
 		Json:         nil,
 		Form:         nil,
-		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
-			var result map[string]interface{}
+		UnmarshalJson: func(data []byte) (JSON, error) {
+			var result JSON
 			if err := json.Unmarshal(data, &result); err != nil {
 				return nil, err
 			}
 			return result, nil
 		},
-		MarshalJson: func(data map[string]interface{}) ([]byte, error) {
+		MarshalJson: func(data JSON) ([]byte, error) {
 			result, err := json.Marshal(data)
 			if err != nil {
 				return nil, err

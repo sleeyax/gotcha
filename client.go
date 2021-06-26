@@ -1,7 +1,7 @@
 package gotcha
 
 import (
-	bytes2 "bytes"
+	bytesPkg "bytes"
 	"github.com/sleeyax/gotcha/internal/utils"
 	"io"
 	"net/http"
@@ -29,7 +29,7 @@ func (c *Client) Extend(options *Options) (*Client, error) {
 	return &Client{opts}, nil
 }
 
-func (c *Client) DoRequest(method string, url string, options ...*Options) (*http.Response, error) {
+func (c *Client) DoRequest(method string, url string, options ...*Options) (*Response, error) {
 	for _, hook := range c.options.Hooks.Init {
 		hook(c.options)
 	}
@@ -58,7 +58,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 	c.ParseBody()
 	defer c.CloseBody()
 
-	retry := func(res *http.Response, err error) (*http.Response, error) {
+	retry := func(res *Response, err error) (*Response, error) {
 		for _, hook := range c.options.Hooks.BeforeRetry {
 			hook(c.options, err, c.options.retries)
 		}
@@ -80,7 +80,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 
 	if err == nil {
 		for _, hook := range c.options.Hooks.AfterResponse {
-			var retryFunc RetryFunc = func(o *Options) (*http.Response, error) {
+			var retryFunc RetryFunc = func(o *Options) (*Response, error) {
 				c.options, err = c.options.Extend(o)
 				if err != nil {
 					return nil, err
@@ -153,7 +153,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 	return res, nil
 }
 
-func (c *Client) getTimeout(response *http.Response) (time.Duration, error) {
+func (c *Client) getTimeout(response *Response) (time.Duration, error) {
 	retryAfter := strings.TrimSpace(response.Header.Get("retry-after"))
 
 	// response header doesn't specify timeout, default to request timeout
@@ -186,7 +186,7 @@ func (c *Client) getTimeout(response *http.Response) (time.Duration, error) {
 // information about the original domain and path, the logic below
 // assumes any new set cookies override the original cookie
 // regardless of domain or path.
-func (c *Client) updateRequestCookies(response *http.Response) {
+func (c *Client) updateRequestCookies(response *Response) {
 	cookies := c.getRequestCookies()
 	if c.options.CookieJar != nil && cookies != nil {
 		// changed denotes whether or not a response cookie has a different value than a request cookie
@@ -246,32 +246,32 @@ func (c *Client) ParseBody() error {
 		if err != nil {
 			return err
 		}
-		c.options.Body = io.NopCloser(bytes2.NewReader(bytes))
+		c.options.Body = io.NopCloser(bytesPkg.NewReader(bytes))
 		return nil
 	}
 	return nil
 }
 
-func (c *Client) Get(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Get(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("GET", url, options...)
 }
 
-func (c *Client) Post(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Post(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("POST", url, options...)
 }
 
-func (c *Client) Update(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Update(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("UPDATE", url, options...)
 }
 
-func (c *Client) Patch(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Patch(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("PATCH", url, options...)
 }
 
-func (c *Client) Delete(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Delete(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("DELETE", url, options...)
 }
 
-func (c *Client) Head(url string, options ...*Options) (*http.Response, error) {
+func (c *Client) Head(url string, options ...*Options) (*Response, error) {
 	return c.DoRequest("HEAD", url, options...)
 }

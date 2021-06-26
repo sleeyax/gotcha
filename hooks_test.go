@@ -12,8 +12,8 @@ import (
 func createClient(t *testing.T, hooks Hooks) *Client {
 	client, err := NewClient(&Options{
 		Hooks: hooks,
-		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
-			return &http.Response{}
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
+			return NewResponse(&http.Response{})
 		}},
 	})
 	if err != nil {
@@ -69,16 +69,16 @@ func TestHooks_BeforeRedirect(t *testing.T) {
 	client, err := NewClient(&Options{
 		Hooks: Hooks{
 			BeforeRedirect: []BeforeRedirectHook{
-				func(options *Options, response *http.Response) {
+				func(options *Options, response *Response) {
 					hooked = true
 					options.PrefixURL = prefixUrl
 				},
 			},
 		},
-		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
 			header := http.Header{}
 			header.Add("location", "/home")
-			return &http.Response{StatusCode: 302, Header: header, Body: io.NopCloser(bytes.NewReader([]byte{}))}
+			return NewResponse(&http.Response{StatusCode: 302, Header: header, Body: io.NopCloser(bytes.NewReader([]byte{}))})
 		}},
 		FollowRedirect: true,
 		RedirectOptions: RedirectOptions{
@@ -111,7 +111,7 @@ func TestHooks_BeforeRetry_And_AfterResponse(t *testing.T) {
 			},
 		},
 		AfterResponse: []AfterResponseHook{
-			func(response *http.Response, retry RetryFunc) (*http.Response, error) {
+			func(response *Response, retry RetryFunc) (*Response, error) {
 				hookedAfterResponse = true
 				response.Body = io.NopCloser(strings.NewReader("hijacked"))
 				if !hookedBeforeRetry {

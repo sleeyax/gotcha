@@ -1,10 +1,6 @@
 package gotcha
 
-import (
-	"net/http"
-)
-
-func DoRequest(url string, method string, options ...*Options) (*http.Response, error) {
+func DoRequest(url string, method string, options ...*Options) (*Response, error) {
 	client, err := NewClient(&Options{})
 	if err != nil {
 		return nil, err
@@ -12,22 +8,22 @@ func DoRequest(url string, method string, options ...*Options) (*http.Response, 
 	return client.DoRequest(method, url, options...)
 }
 
-func Get(url string, options ...*Options) (*http.Response, error) {
+func Get(url string, options ...*Options) (*Response, error) {
 	return DoRequest(url, "GET", options...)
 }
 
-func Post(url string, options ...*Options) (*http.Response, error) {
+func Post(url string, options ...*Options) (*Response, error) {
 	return DoRequest(url, "POST", options...)
 }
 
-func Put(url string, options ...*Options) (*http.Response, error) {
+func Put(url string, options ...*Options) (*Response, error) {
 	return DoRequest(url, "PUT", options...)
 }
 
-func Patch(url string, options ...*Options) (*http.Response, error) {
+func Patch(url string, options ...*Options) (*Response, error) {
 	return DoRequest(url, "PATCH", options...)
 }
 
-func Delete(url string, options ...*Options) (*http.Response, error) {
+func Delete(url string, options ...*Options) (*Response, error) {
 	return DoRequest(url, "DELETE", options...)
 }

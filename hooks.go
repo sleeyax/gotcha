@@ -1,14 +1,12 @@
 package gotcha
 
-import "net/http"
-
-type RetryFunc func(updatedOptions *Options) (*http.Response, error)
+type RetryFunc func(updatedOptions *Options) (*Response, error)
 
 type BeforeRequestHook func(*Options)
 
-type BeforeRedirectHook func(*Options, *http.Response)
+type BeforeRedirectHook func(*Options, *Response)
 
-type AfterResponseHook func(response *http.Response, retry RetryFunc) (*http.Response, error)
+type AfterResponseHook func(response *Response, retry RetryFunc) (*Response, error)
 
 type BeforeRetryHook func(options *Options, error error, retryCount int)
 

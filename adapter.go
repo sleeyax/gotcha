@@ -6,7 +6,7 @@ import (
 
 type Adapter interface {
 	// DoRequest is a custom function that will be used by gotcha to make the actual request.
-	DoRequest(options *Options) (*http.Response, error)
+	DoRequest(options *Options) (*Response, error)
 }
 
 // RequestAdapter is a basic implementation of Adapter.
@@ -22,7 +22,7 @@ type RequestAdapter struct {
 	Request func(*Options) *http.Request
 }
 
-func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
+func (ra *RequestAdapter) DoRequest(options *Options) (*Response, error) {
 	if ra.Request == nil {
 		ra.Request = func(o *Options) *http.Request {
 			return &http.Request{
@@ -57,14 +57,14 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 		}
 	}
 
-	return res, nil
+	return &Response{res, options.UnmarshalJson}, nil
 }
 
 // mockAdapter is only used for testing Adapter.
 type mockAdapter struct {
-	OnCalledDoRequest func(*Options) *http.Response
+	OnCalledDoRequest func(*Options) *Response
 }
 
-func (ma *mockAdapter) DoRequest(options *Options) (*http.Response, error) {
+func (ma *mockAdapter) DoRequest(options *Options) (*Response, error) {
 	return ma.OnCalledDoRequest(options), nil
 }
