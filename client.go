@@ -94,19 +94,19 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 			res = r
 		}
 	}
-	// TODO: fix minor code duplication (see below)
-	if err != nil {
-		if c.options.Retry && c.options.retries < c.options.RetryOptions.Limit && utils.StringArrayContains(c.options.RetryOptions.ErrorCodes, err.Error()) {
-			return retry(res, err)
-		}
+
+	if err != nil && (!c.options.Retry || (c.options.retries >= c.options.RetryOptions.Limit)) {
 		return nil, err
 	}
 
-	if c.options.Retry && utils.IntArrayContains(c.options.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(c.options.RetryOptions.Methods, method) {
+	if c.options.Retry {
 		if c.options.retries >= c.options.RetryOptions.Limit {
 			return res, NewMaxRetriesExceededError()
 		}
-		return retry(res, nil)
+
+		if (err != nil && utils.StringArrayContains(c.options.RetryOptions.ErrorCodes, err.Error())) || (utils.IntArrayContains(c.options.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(c.options.RetryOptions.Methods, method)) {
+			return retry(res, err)
+		}
 	}
 
 	if c.options.FollowRedirect && res.Header.Get("location") != "" && utils.IntArrayContains(RedirectStatusCodes, res.StatusCode) {
