@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Sleeyax/urlValues"
 	"github.com/imdario/mergo"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -64,8 +65,21 @@ type Options struct {
 	// Request Body.
 	//
 	// Body will be set in the following order,
-	// whichever value is found to be of non-zero value first: Body.Form -> Body.Json -> Body.Content.
-	Body Body
+	// whichever value is found to be of non-zero value first: Form -> Json -> Body.
+	// Raw body content.
+	Body io.ReadCloser
+
+	// JSON data.
+	Json map[string]interface{}
+
+	// Form data that will be converted to a query string.
+	Form urlValues.Values
+
+	// A function used to parse JSON responses.
+	UnmarshalJson func(data []byte) (map[string]interface{}, error)
+
+	// A function used to stringify the body of JSON requests.
+	MarshalJson func(json map[string]interface{}) ([]byte, error)
 
 	// Can contain custom user data.
 	// This can be  useful for storing authentication tokens for example.
@@ -137,24 +151,22 @@ func NewDefaultOptions() *Options {
 		Method:       "GET",
 		PrefixURL:    "",
 		Headers:      make(http.Header),
-		Body: Body{
-			Content: nil,
-			Json:    nil,
-			Form:    nil,
-			UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
-				var result map[string]interface{}
-				if err := json.Unmarshal(data, &result); err != nil {
-					return nil, err
-				}
-				return result, nil
-			},
-			MarshalJson: func(data map[string]interface{}) ([]byte, error) {
-				result, err := json.Marshal(data)
-				if err != nil {
-					return nil, err
-				}
-				return result, nil
-			},
+		Body:         nil,
+		Json:         nil,
+		Form:         nil,
+		UnmarshalJson: func(data []byte) (map[string]interface{}, error) {
+			var result map[string]interface{}
+			if err := json.Unmarshal(data, &result); err != nil {
+				return nil, err
+			}
+			return result, nil
+		},
+		MarshalJson: func(data map[string]interface{}) ([]byte, error) {
+			result, err := json.Marshal(data)
+			if err != nil {
+				return nil, err
+			}
+			return result, nil
 		},
 		Context:        nil,
 		CookieJar:      jar,

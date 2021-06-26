@@ -1,7 +1,9 @@
 package gotcha
 
 import (
+	bytes2 "bytes"
 	"github.com/sleeyax/gotcha/internal/utils"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,7 +29,15 @@ func (c *Client) Extend(options *Options) (*Client, error) {
 	return &Client{opts}, nil
 }
 
-func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
+func (c *Client) DoRequest(method string, url string, options ...*Options) (*http.Response, error) {
+	for _, option := range options {
+		var err error
+		c.options, err = c.options.Extend(option)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	u, err := utils.GetFullUrl(c.options.PrefixURL, url)
 	if err != nil {
 		return nil, err
@@ -41,8 +51,8 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 		c.options.FullUrl.RawQuery = sp.EncodeWithOrder()
 	}
 
-	c.options.Body.Parse()
-	defer c.options.Body.Close()
+	c.ParseBody()
+	defer c.CloseBody()
 
 	retry := func(res *http.Response, err error) (*http.Response, error) {
 		timeout, e := c.getTimeout(res)
@@ -52,7 +62,7 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 		timeout = c.options.RetryOptions.CalculateTimeout(c.options.retries, c.options.RetryOptions, timeout, err)
 		time.Sleep(timeout)
 		c.options.retries++
-		return c.DoRequest(url, method)
+		return c.DoRequest(method, url)
 	}
 
 	res, err := c.options.Adapter.DoRequest(c.options)
@@ -80,7 +90,7 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 
 		if c.options.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && c.options.Method != "GET" && c.options.Method != "HEAD") {
 			c.options.Method = "GET"
-			c.options.Body.Close()
+			c.CloseBody()
 			c.options.Headers.Del("content-length")
 			c.options.Headers.Del("content-type")
 		}
@@ -104,7 +114,7 @@ func (c *Client) DoRequest(url string, method string) (*http.Response, error) {
 
 		// TODO: call redirect hook
 
-		return c.DoRequest(redirectUrl.String(), c.options.Method)
+		return c.DoRequest(c.options.Method, redirectUrl.String())
 	}
 
 	return res, nil
@@ -167,30 +177,6 @@ func (c *Client) updateRequestCookies(response *http.Response) {
 	}
 }
 
-func (c *Client) Get(url string) (*http.Response, error) {
-	return c.DoRequest(url, "GET")
-}
-
-func (c *Client) Post(url string) (*http.Response, error) {
-	return c.DoRequest(url, "POST")
-}
-
-func (c *Client) Update(url string) (*http.Response, error) {
-	return c.DoRequest(url, "UPDATE")
-}
-
-func (c *Client) Patch(url string) (*http.Response, error) {
-	return c.DoRequest(url, "PATCH")
-}
-
-func (c *Client) Delete(url string) (*http.Response, error) {
-	return c.DoRequest(url, "DELETE")
-}
-
-func (c *Client) Head(url string) (*http.Response, error) {
-	return c.DoRequest(url, "HEAD")
-}
-
 // getRequestCookies returns the cookies that were manually set in Options.Headers.
 func (c *Client) getRequestCookies() map[string][]*http.Cookie {
 	var cookies map[string][]*http.Cookie
@@ -204,4 +190,55 @@ func (c *Client) getRequestCookies() map[string][]*http.Cookie {
 	}
 
 	return cookies
+}
+
+// CloseBody clears the Body, Form and Json fields.
+func (c *Client) CloseBody() {
+	if c.options.Body != nil {
+		c.options.Body.Close()
+	}
+	c.options.Body = nil
+	c.options.Form = nil
+	c.options.Json = nil
+}
+
+// ParseBody parses Form or Json (in that order) into Content.
+func (c *Client) ParseBody() error {
+	if len(c.options.Form) != 0 {
+		encoded := c.options.Form.EncodeWithOrder()
+		c.options.Body = io.NopCloser(strings.NewReader(encoded))
+		return nil
+	} else if j := c.options.Json; len(j) != 0 {
+		bytes, err := c.options.MarshalJson(j)
+		if err != nil {
+			return err
+		}
+		c.options.Body = io.NopCloser(bytes2.NewReader(bytes))
+		return nil
+	}
+	return nil
+}
+
+func (c *Client) Get(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("GET", url, options...)
+}
+
+func (c *Client) Post(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("POST", url, options...)
+}
+
+func (c *Client) Update(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("UPDATE", url, options...)
+}
+
+func (c *Client) Patch(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("PATCH", url, options...)
+}
+
+func (c *Client) Delete(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("DELETE", url, options...)
+}
+
+func (c *Client) Head(url string, options ...*Options) (*http.Response, error) {
+	return c.DoRequest("HEAD", url, options...)
 }

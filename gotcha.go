@@ -5,18 +5,11 @@ import (
 )
 
 func DoRequest(url string, method string, options ...*Options) (*http.Response, error) {
-	o := &Options{}
-	var err error
-
-	for _, option := range options {
-		o, err = o.Extend(option)
-	}
-
-	client, err := NewClient(o)
+	client, err := NewClient(&Options{})
 	if err != nil {
 		return nil, err
 	}
-	return client.DoRequest(url, method)
+	return client.DoRequest(method, url, options...)
 }
 
 func Get(url string, options ...*Options) (*http.Response, error) {

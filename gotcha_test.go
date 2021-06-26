@@ -39,14 +39,14 @@ func TestPost(t *testing.T) {
 	// test that the last option body we provided is used when performing the request
 	_, err := Post(
 		"https://example.com",
-		&Options{Body: Body{Content: createBody("foo")}, Adapter: &mockAdapter{OnCalledDoRequest: func(o *Options) *http.Response {
-			body, _ := io.ReadAll(o.Body.Content)
+		&Options{Body: createBody("foo"), Adapter: &mockAdapter{OnCalledDoRequest: func(o *Options) *http.Response {
+			body, _ := io.ReadAll(o.Body)
 			if b := string(body); b != expectedBody {
 				t.Errorf(tests.MismatchFormat, "body", expectedBody, b)
 			}
 			return &http.Response{StatusCode: 200}
 		}}},
-		&Options{Body: Body{Content: createBody(expectedBody)}},
+		&Options{Body: createBody(expectedBody)},
 	)
 	if err != nil {
 		t.Fatal(err)

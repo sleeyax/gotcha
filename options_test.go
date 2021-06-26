@@ -20,7 +20,7 @@ func TestOptions_Merge(t *testing.T) {
 		Headers: http.Header{
 			"Foo": {"Bar"},
 		},
-		Body: Body{Content: io.NopCloser(strings.NewReader("hello world"))},
+		Body: io.NopCloser(strings.NewReader("hello world")),
 		SearchParams: urlValues.Values{
 			"xyz":              {"123"},
 			"abc":              {"def"},
@@ -60,7 +60,7 @@ func TestOptions_Merge(t *testing.T) {
 		t.Errorf(tests.MismatchFormat, "headers", "Bar", h)
 	}
 
-	optionsBody, err := io.ReadAll(options.Body.Content)
+	optionsBody, err := io.ReadAll(options.Body)
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,7 +68,7 @@ func TestOptions_Merge(t *testing.T) {
 		t.Errorf(tests.MismatchFormat, "body", "hello world", b)
 	}
 
-	if options.Body.UnmarshalJson == nil || options.Body.MarshalJson == nil {
+	if options.UnmarshalJson == nil || options.MarshalJson == nil {
 		t.Errorf("Any of the json marshal functions shouldn't be nil.")
 	}
 

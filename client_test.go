@@ -66,7 +66,7 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := client.DoRequest(ts.URL, "GET")
+	res, err := client.DoRequest("GET", ts.URL)
 	if err == nil {
 		t.Fatalf("request should have failed, but got status code %d", res.StatusCode)
 	}
@@ -86,7 +86,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 
 	client, err := NewClient(&Options{
 		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
-			bodyBytes, err := io.ReadAll(options.Body.Content)
+			bodyBytes, err := io.ReadAll(options.Body)
 			if err != nil {
 				t.Fatalf("failed to read body while testing %s", testType)
 			}
@@ -103,12 +103,12 @@ func TestClient_DoRequest_Body(t *testing.T) {
 
 	testType = "raw body"
 	wantedBody = "hello world!"
-	client.options.Body.Content = io.NopCloser(strings.NewReader(wantedBody))
+	client.options.Body = io.NopCloser(strings.NewReader(wantedBody))
 	client.Post(url)
 
 	testType = "form"
 	wantedBody = "foo=bar&abc=def"
-	client.options.Body.Form = urlValues.Values{
+	client.options.Form = urlValues.Values{
 		"foo":              {"bar"},
 		"abc":              {"def"},
 		urlValues.OrderKey: []string{"foo", "abc"},
@@ -119,7 +119,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 	wantedBody = `{"a":"b","c":["d","e","f"],"g":{"h":"i"}}`
 	var result map[string]interface{}
 	json.Unmarshal([]byte(wantedBody), &result)
-	client.options.Body.Json = result
+	client.options.Json = result
 	client.Post(url)
 }
 
@@ -225,7 +225,7 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	}
 
 	// test rewrite methods
-	client.options.Body = Body{Content: io.NopCloser(strings.NewReader("hello world!"))}
+	client.options.Body = io.NopCloser(strings.NewReader("hello world!"))
 	res, err := client.Post(ts.URL + "/")
 	if err != nil {
 		t.Fatal(err)
