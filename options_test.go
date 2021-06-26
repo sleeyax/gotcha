@@ -30,8 +30,8 @@ func TestOptions_Merge(t *testing.T) {
 		FollowRedirect:  false,
 		RedirectOptions: RedirectOptions{},
 		Hooks: Hooks{
-			BeforeRequest: []BeforeRequest{
-				func(_ *http.Request) {
+			BeforeRequest: []BeforeRequestHook{
+				func(options *Options) {
 					beforeRequestCalled = true
 				},
 			},
@@ -89,9 +89,9 @@ func TestOptions_Merge(t *testing.T) {
 	}
 
 	if len(options.Hooks.BeforeRequest) == 0 {
-		t.Errorf("At least 1 BeforeRequest hook should be set.")
+		t.Errorf("At least 1 BeforeRequestHook hook should be set.")
 	}
-	options.Hooks.BeforeRequest[0](&http.Request{})
+	options.Hooks.BeforeRequest[0](&Options{})
 	if !beforeRequestCalled {
 		t.Errorf(tests.MismatchFormat, "hook result 'beforeRequestCalled'", true, beforeRequestCalled)
 	}

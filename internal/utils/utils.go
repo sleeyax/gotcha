@@ -25,16 +25,32 @@ func IntArrayContains(values []int, i int) bool {
 	return false
 }
 
-// GetFullUrl computes the actual request url by combining prefixUrl and url.
-func GetFullUrl(prefixUrl string, url string) (*urlPkg.URL, error) {
+// MergeUrl computes the actual request url by combining prefixUrl and url.
+// If both prefixUrl and url are absolute, gotcha will assume prefixUrl to be the root url.
+func MergeUrl(prefixUrl string, url string) (*urlPkg.URL, error) {
 	if prefixUrl == "" {
 		return urlPkg.Parse(url)
 	}
 
-	u, err := urlPkg.Parse(prefixUrl)
+	pu, err := urlPkg.Parse(prefixUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	return u.Parse(url)
+	if url == "" {
+		return pu, err
+	}
+
+	u, err := urlPkg.Parse(url)
+	if err != nil {
+		return nil, err
+	}
+
+	if !u.IsAbs() {
+		return pu.Parse(url)
+	}
+
+	pu.RawPath = u.RawPath
+	pu.Path = u.Path
+	return pu, nil
 }

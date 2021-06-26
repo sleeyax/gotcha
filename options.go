@@ -111,7 +111,7 @@ type Options struct {
 	// List of URls that have responded with a redirect so far.
 	redirectUrls []*url.URL
 
-	// Middleware functions.
+	// Hooks allow modifications during the request lifecycle.
 	Hooks Hooks
 }
 

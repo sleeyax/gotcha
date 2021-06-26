@@ -30,6 +30,10 @@ func (c *Client) Extend(options *Options) (*Client, error) {
 }
 
 func (c *Client) DoRequest(method string, url string, options ...*Options) (*http.Response, error) {
+	for _, hook := range c.options.Hooks.Init {
+		hook(c.options)
+	}
+
 	for _, option := range options {
 		var err error
 		c.options, err = c.options.Extend(option)
@@ -38,7 +42,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 		}
 	}
 
-	u, err := utils.GetFullUrl(c.options.PrefixURL, url)
+	u, err := utils.MergeUrl(c.options.PrefixURL, url)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +59,9 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 	defer c.CloseBody()
 
 	retry := func(res *http.Response, err error) (*http.Response, error) {
+		for _, hook := range c.options.Hooks.BeforeRetry {
+			hook(c.options, err, c.options.retries)
+		}
 		timeout, e := c.getTimeout(res)
 		if e != nil {
 			return nil, e
@@ -65,7 +72,29 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 		return c.DoRequest(method, url)
 	}
 
+	for _, hook := range c.options.Hooks.BeforeRequest {
+		hook(c.options)
+	}
+
 	res, err := c.options.Adapter.DoRequest(c.options)
+
+	for _, hook := range c.options.Hooks.AfterResponse {
+		var retryFunc RetryFunc = func(o *Options) (*http.Response, error) {
+			c.options, err = c.options.Extend(o)
+			if err != nil {
+				return nil, err
+			}
+			return retry(res, nil)
+		}
+		r, e := hook(res, retryFunc)
+		if e != nil {
+			return nil, e
+		}
+		if r != nil {
+			res = r
+		}
+	}
+	// TODO: fix minor code duplication (see below)
 	if err != nil {
 		if c.options.Retry && c.options.retries < c.options.RetryOptions.Limit && utils.StringArrayContains(c.options.RetryOptions.ErrorCodes, err.Error()) {
 			return retry(res, err)
@@ -96,7 +125,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 		}
 
 		currentUrl := c.options.FullUrl
-		redirectUrl, err := utils.GetFullUrl(currentUrl.String(), res.Header.Get("location"))
+		redirectUrl, err := utils.MergeUrl(currentUrl.String(), res.Header.Get("location"))
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +141,9 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 		c.options.PrefixURL = ""
 		c.options.redirectUrls = append(c.options.redirectUrls, redirectUrl)
 
-		// TODO: call redirect hook
+		for _, hook := range c.options.Hooks.BeforeRedirect {
+			hook(c.options, res)
+		}
 
 		return c.DoRequest(c.options.Method, redirectUrl.String())
 	}
