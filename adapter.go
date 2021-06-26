@@ -16,19 +16,21 @@ type RequestAdapter struct {
 	// Defaults to http.DefaultTransport.
 	RoundTripper http.RoundTripper
 
-	// Request is the http.Request to send.
+	// Request is a function that builds the http.Request to send.
 	//
-	// The Request will be derived from Options when unspecified.
-	Request *http.Request
+	// Defaults to a function that derives Request the specified Options.
+	Request func(*Options) *http.Request
 }
 
 func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 	if ra.Request == nil {
-		ra.Request = &http.Request{
-			Method: options.Method,
-			URL:    options.FullUrl,
-			Header: options.Headers,
-			Body:   options.Body.Content,
+		ra.Request = func(o *Options) *http.Request {
+			return &http.Request{
+				Method: o.Method,
+				URL:    o.FullUrl,
+				Header: o.Headers,
+				Body:   o.Body.Content,
+			}
 		}
 	}
 
@@ -36,9 +38,23 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*http.Response, error) {
 		ra.RoundTripper = http.DefaultTransport
 	}
 
-	res, err := ra.RoundTripper.RoundTrip(ra.Request)
+	req := ra.Request(options)
+
+	if options.CookieJar != nil {
+		for _, cookie := range options.CookieJar.Cookies(options.FullUrl) {
+			req.AddCookie(cookie)
+		}
+	}
+
+	res, err := ra.RoundTripper.RoundTrip(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if options.CookieJar != nil {
+		if rc := res.Cookies(); len(rc) > 0 {
+			options.CookieJar.SetCookies(options.FullUrl, rc)
+		}
 	}
 
 	return res, nil

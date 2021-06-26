@@ -6,7 +6,9 @@ import (
 	"github.com/sleeyax/gotcha/internal/tests"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	urlPkg "net/url"
 	"strings"
 	"testing"
 	"time"
@@ -68,7 +70,7 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 	if err == nil {
 		t.Fatalf("request should have failed, but got status code %d", res.StatusCode)
 	}
-	if err != RequestFailedError {
+	if _, ok := err.(*MaxRetriesExceededError); !ok {
 		t.Fatal(err)
 	}
 
@@ -119,4 +121,125 @@ func TestClient_DoRequest_Body(t *testing.T) {
 	json.Unmarshal([]byte(wantedBody), &result)
 	client.options.Body.Json = result
 	client.Post(url)
+}
+
+func TestClient_DoRequest_Cookies(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.RequestURI {
+		case "/":
+			http.Redirect(w, r, "/cookie", 302)
+			break
+		case "/nocookie":
+			w.WriteHeader(200)
+			break
+		case "/cookie":
+			http.SetCookie(w, &http.Cookie{Name: "foo", Value: "bar"})
+			w.WriteHeader(200)
+			break
+		case "/cookieredirect":
+			http.SetCookie(w, &http.Cookie{Name: "abc", Value: "def"})
+			http.Redirect(w, r, "/nocookie", 302)
+			break
+		}
+	}))
+	defer ts.Close()
+	tsUrl, _ := urlPkg.Parse(ts.URL)
+
+	jar, _ := cookiejar.New(&cookiejar.Options{})
+
+	client, err := NewClient(&Options{
+		CookieJar:      jar,
+		FollowRedirect: true,
+		RedirectOptions: RedirectOptions{
+			RewriteMethods: false,
+			Limit:          1,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = client.Get(ts.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// test if cookie was set after redirect has been followed
+	cookies := jar.Cookies(tsUrl)
+	if len(cookies) == 0 {
+		t.Fatalf("0 cookies were set")
+	}
+	if firstCookie := cookies[0]; firstCookie.Name != "foo" && firstCookie.Value != "bar" {
+		t.Fatalf(tests.MismatchFormat, "cookie", "foo=bar", firstCookie.Name+"="+firstCookie.Value)
+	}
+
+	// test override cookie
+	jar, _ = cookiejar.New(&cookiejar.Options{})
+	headers := http.Header{}
+	headers.Add("cookie", "abc=xyz")
+	client, _ = client.Extend(&Options{
+		CookieJar: jar,
+		Headers:   headers,
+		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *http.Response {
+			requestAdapter := RequestAdapter{}
+			res, err := requestAdapter.DoRequest(options)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cookie := options.Headers.Get("cookie"); res.StatusCode == 200 && cookie != "abc=def" {
+				t.Fatalf(tests.MismatchFormat, "cookie override", "abc=def", cookie)
+			}
+			return res
+		}},
+	})
+	client.Get(ts.URL + "/cookieredirect")
+}
+
+func TestClient_DoRequest_Redirect(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.RequestURI {
+		case "/":
+			http.Redirect(w, r, "/home", 302)
+			break
+		case "/home":
+			w.WriteHeader(200)
+			break
+		case "/loop":
+			http.Redirect(w, r, "/loop", 302)
+		}
+	}))
+	defer ts.Close()
+
+	jar, _ := cookiejar.New(&cookiejar.Options{})
+
+	client, err := NewClient(&Options{
+		CookieJar:      jar,
+		FollowRedirect: true,
+		RedirectOptions: RedirectOptions{
+			RewriteMethods: true,
+			Limit:          3,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// test rewrite methods
+	client.options.Body = Body{Content: io.NopCloser(strings.NewReader("hello world!"))}
+	res, err := client.Post(ts.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m := res.Request.Method; m != "GET" {
+		t.Fatalf(tests.MismatchFormat, "method", "GET", m)
+	}
+
+	// test retry limit
+	_, err = client.Get(ts.URL + "/loop")
+	if err == nil {
+		t.Fatalf("expected MaxRedirectsExceededError to be non-nil")
+	}
+	if _, ok := err.(*MaxRedirectsExceededError); !ok {
+		t.Fatal(err)
+	}
 }

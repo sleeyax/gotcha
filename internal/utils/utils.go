@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	urlPkg "net/url"
+	"strings"
+)
 
 // StringArrayContains checks is given string contains any of the provided values.
 func StringArrayContains(values []string, str string) bool {
@@ -20,4 +23,18 @@ func IntArrayContains(values []int, i int) bool {
 		}
 	}
 	return false
+}
+
+// GetFullUrl computes the actual request url by combining prefixUrl and url.
+func GetFullUrl(prefixUrl string, url string) (*urlPkg.URL, error) {
+	if prefixUrl == "" {
+		return urlPkg.Parse(url)
+	}
+
+	u, err := urlPkg.Parse(prefixUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return u.Parse(url)
 }

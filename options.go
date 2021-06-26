@@ -10,21 +10,22 @@ import (
 	"time"
 )
 
+var RedirectStatusCodes = []int{300, 301, 302, 303, 304, 307, 308}
+
 type RedirectOptions struct {
 	// Specifies if redirects should be rewritten as GET.
 	//
 	// If false, when sending a POST request and receiving a 302,
 	// it will resend the body to the new location using the same HTTP method (POST in this case).
+	//
+	// Note that if a 303 is sent by the server in response to any request type (POST, DELETE, etc.),
+	// gotcha will automatically request the resource pointed to in the location header via GET.
+	// This is in accordance with the spec https://tools.ietf.org/html/rfc7231#section-6.4.4.
 	RewriteMethods bool
-
-	// If a 303 (See Other) status code is sent by the server in response to any request type (POST, DELETE, ...),
-	// gotcha will automatically request the resource pointed to in the location header via GET
-	// unless this field is set to false.
-	HandleSeeOther bool
 
 	// Maximum amount of redirects to follow.
 	// Follows an unlimited amount of redirects when set to 0.
-	MaxRedirects int
+	Limit int
 }
 
 type Options struct {
@@ -66,10 +67,17 @@ type Options struct {
 	Body Body
 
 	// Can contain custom user data.
-	// It's useful for storing authentication tokens for example.
+	// This can be  useful for storing authentication tokens for example.
 	Context interface{}
 
-	// Automatically store & parse cookies.
+	// CokieJar automatically stores & parses cookies.
+	//
+	// The CookieJar is used to insert relevant cookies into every
+	// outbound Request and is updated with the cookie values
+	// of every inbound Response. The CookieJar is also consulted for every
+	// redirect that the Client follows.
+	//
+	// If CookieJar is nil, cookies are only sent if they are explicitly set on the Request.
 	CookieJar http.CookieJar
 
 	// Query string that will be added to the request URL.
@@ -84,6 +92,9 @@ type Options struct {
 
 	// Additional configuration options for FollowRedirect.
 	RedirectOptions RedirectOptions
+
+	// List of URls that have responded with a redirect so far.
+	redirectUrls []*url.URL
 
 	// Middleware functions.
 	Hooks Hooks
@@ -148,11 +159,10 @@ func NewDefaultOptions() *Options {
 		CookieJar:      jar,
 		SearchParams:   nil,
 		Timeout:        time.Second * 10,
-		FollowRedirect: false,
+		FollowRedirect: true,
 		RedirectOptions: RedirectOptions{
-			HandleSeeOther: true,
-			MaxRedirects:   0,
-			RewriteMethods: false,
+			Limit:          0,
+			RewriteMethods: true,
 		},
 		Hooks:   Hooks{},
 		Adapter: &RequestAdapter{},
