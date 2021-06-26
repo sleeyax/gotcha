@@ -78,20 +78,22 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*htt
 
 	res, err := c.options.Adapter.DoRequest(c.options)
 
-	for _, hook := range c.options.Hooks.AfterResponse {
-		var retryFunc RetryFunc = func(o *Options) (*http.Response, error) {
-			c.options, err = c.options.Extend(o)
-			if err != nil {
-				return nil, err
+	if err == nil {
+		for _, hook := range c.options.Hooks.AfterResponse {
+			var retryFunc RetryFunc = func(o *Options) (*http.Response, error) {
+				c.options, err = c.options.Extend(o)
+				if err != nil {
+					return nil, err
+				}
+				return retry(res, nil)
 			}
-			return retry(res, nil)
-		}
-		r, e := hook(res, retryFunc)
-		if e != nil {
-			return nil, e
-		}
-		if r != nil {
-			res = r
+			r, e := hook(res, retryFunc)
+			if e != nil {
+				return nil, e
+			}
+			if r != nil {
+				res = r
+			}
 		}
 	}
 
