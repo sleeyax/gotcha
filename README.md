@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img width="150" src="docs/assets/logo.svg" />
+  <img width="150" src="docs/assets/logo.png" />
   <p>Gotcha</p>
 </h1>
 
