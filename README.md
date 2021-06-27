@@ -9,7 +9,7 @@ Gotcha is an alternative to Go's standard [http client](https://golang.org/src/n
 with an API inspired by [got](https://github.com/sindresorhus/got).
 It can interface with other HTTP libraries through an adapter.
 
-Gotcha works fine with [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient). 
+Gotcha can interface with [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient). 
 See the [examples](examples) for their respective adapter implementations. 
 
 **Note: further documentation & examples are WIP (coming soon)**
@@ -89,9 +89,10 @@ func main() {
 		},
 	})
 
-	logClient.DoRequest("PUT", "anything", &gotcha.Options{
+	res, _ := logClient.DoRequest("PUT", "anything", &gotcha.Options{
 		Body: io.NopCloser(strings.NewReader("hello world!")),
 	})
+	defer res.Close()
 	// Output: "about to send a request to https://httpbin.org/anything with method PUT"
 }
 ```
