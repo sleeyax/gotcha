@@ -206,8 +206,8 @@ func NewDefaultRetryOptions() *RetryOptions {
 
 // Extend updates values from the current Options with values from the specified options.
 func (o *Options) Extend(options *Options) (*Options, error) {
-	dst := options
-
+	optionsValue := *options
+	dst := optionsValue
 	// This check is necessary to fix weird 'panic: reflect: Field index out of range' error.
 	// Mentioned error probably occurs because mergo can't decide how to merge Adapter structs that contain non-primitive fields
 	// (i.e (nested) struct fields).
@@ -217,8 +217,27 @@ func (o *Options) Extend(options *Options) (*Options, error) {
 		o.Adapter = options.Adapter
 	}
 
-	if err := mergo.Merge(dst, o); err != nil {
+	if err := mergo.Merge(&dst, o); err != nil {
 		return nil, err
 	}
-	return dst, nil
+
+	// Mergo doesn't have an option to override bool zero values *only*, so we'll just do it ourselves.
+	if dst.Retry && !options.Retry {
+		dst.Retry = false
+	}
+	if dst.FollowRedirect && !options.FollowRedirect {
+		dst.FollowRedirect = false
+	}
+	if dst.RedirectOptions.RewriteMethods && !options.RedirectOptions.RewriteMethods {
+		dst.RedirectOptions.RewriteMethods = false
+	}
+	if options.RetryOptions != nil && dst.RetryOptions.RetryAfter && !options.RetryOptions.RetryAfter {
+		if dst.RetryOptions == nil {
+			dst.RetryOptions = options.RetryOptions
+		} else {
+			dst.RetryOptions.RetryAfter = false
+		}
+	}
+
+	return &dst, nil
 }
