@@ -1,21 +1,17 @@
 <h1 align="center">
   <img width="150" src="docs/assets/logo.png" />
-  <p>Gotcha</p>
+  <p>gotcha</p>
 </h1>
 
-<h4 align="center">Customizable HTTP client</h4>
-
-Gotcha is an alternative to Go's standard [http client](https://golang.org/src/net/http/client.go) implementation, 
+Gotcha is an alternative to Go's [http client](https://golang.org/src/net/http/client.go), 
 with an API inspired by [got](https://github.com/sindresorhus/got).
-It can interface with other HTTP libraries through an adapter.
+It can interface with other HTTP packages through an adapter.
 
-Gotcha can interface with [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient). 
-See the [examples](examples) for their respective adapter implementations. 
-
-**Note: further documentation & examples are WIP (coming soon)**
+Example adapter implementations of [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient) can be found in the [examples](examples) directory.
 
 ## Usage
-Basic example:
+### Top-Level API
+Gotcha exposes a top-level API to make quick and simple requests:
 ```go
 package main
 
@@ -34,7 +30,8 @@ func main() {
 	// Output: <!DOCTYPE html>...
 }
 ```
-Basic example with options:
+#### Configuration options
+When you require further customization of the request, you can so by specifying configuration `Options`:
 ```go
 package main
 
@@ -45,11 +42,11 @@ import (
 )
 
 func main() {
-	// Note: from now on errors are omitted by _ to make the code snippets shorter
 	res, _ := gotcha.Post("https://httpbin.org/anything", &gotcha.Options{
 		Json: gotcha.JSON{
 			"hello": "world",
 		},
+		FollowRedirect: false,
 	})
 	body, _ := res.Json()
 	defer res.Close()
@@ -57,8 +54,9 @@ func main() {
 	// Output: {"hello": "world"}
 }
 ```
-Client example:
-
+### Client
+For advanced requests, create a client instance.
+Clients are configurable, extendable & reusable, giving you fine-grained control over the request:
 ```go
 package main
 
