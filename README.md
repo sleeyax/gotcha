@@ -9,6 +9,8 @@ It can interface with other HTTP packages through an adapter.
 
 Example adapter implementations of [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient) can be found in the [examples](examples) directory.
 
+[![Go Reference](https://pkg.go.dev/badge/pkg.go.dev/github.com/sleeyax/gotcha.svg)](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha)
+
 ## Usage
 ### Top-Level API
 Gotcha exposes a top-level API to make quick and simple requests:
@@ -94,3 +96,5 @@ func main() {
 	// Output: "about to send a request to https://httpbin.org/anything with method PUT"
 }
 ```
+## Documentation
+See [reference](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
