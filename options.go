@@ -207,6 +207,16 @@ func NewDefaultRetryOptions() *RetryOptions {
 // Extend updates values from the current Options with values from the specified options.
 func (o *Options) Extend(options *Options) (*Options, error) {
 	dst := options
+
+	// This check is necessary to fix weird 'panic: reflect: Field index out of range' error.
+	// Mentioned error probably occurs because mergo can't decide how to merge Adapter structs that contain non-primitive fields
+	// (i.e (nested) struct fields).
+	//
+	// The code below assures to just set the new adapter whenever it's not nil, skipping mergo's opeeration in the process.
+	if options.Adapter != nil {
+		o.Adapter = options.Adapter
+	}
+
 	if err := mergo.Merge(dst, o); err != nil {
 		return nil, err
 	}
