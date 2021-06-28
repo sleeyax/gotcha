@@ -16,7 +16,7 @@ var CustomRequestAdapter = &gotcha.RequestAdapter{
 }
 
 func main() {
-	res, err := gotcha.Get("https://sleeyax.dev", &gotcha.Options{
+	res, err := gotcha.Get("https://example.com", &gotcha.Options{
 		Adapter: CustomRequestAdapter,
 	})
 	if err != nil {
