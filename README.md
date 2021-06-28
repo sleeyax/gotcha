@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(res.Body)
+	fmt.Println(res.Text())
 	// Output: <!DOCTYPE html>...
 }
 ```

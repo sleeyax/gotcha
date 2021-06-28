@@ -19,6 +19,24 @@ func (r *Response) Json() (JSON, error) {
 	return r.UnmarshalJsonFunc(bb)
 }
 
+// Raw reads the Response Body as a byte array.
+func (r *Response) Raw() ([]byte, error) {
+	bb, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	return bb, nil
+}
+
+// Text reads the Response Body as a string.
+func (r *Response) Text() (string, error) {
+	raw, err := r.Raw()
+	if err != nil {
+		return "", err
+	}
+	return string(raw), nil
+}
+
 func NewResponse(response *http.Response) *Response {
 	return &Response{
 		Response:          response,
