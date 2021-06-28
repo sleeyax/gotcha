@@ -9,7 +9,8 @@ type Adapter interface {
 	DoRequest(options *Options) (*Response, error)
 }
 
-// RequestAdapter is a basic implementation of Adapter.
+// RequestAdapter is a default implementation of Adapter.
+// Gotcha will use this adapter when no other is specified.
 type RequestAdapter struct {
 	// RoundTripper is a http.RoundTripper that will be used to do the request.
 	//
@@ -18,7 +19,7 @@ type RequestAdapter struct {
 
 	// Request is a function that builds the http.Request to send.
 	//
-	// Defaults to a function that derives Request the specified Options.
+	// Defaults to a function that derives the Request from the specified Options.
 	Request func(*Options) *http.Request
 }
 
