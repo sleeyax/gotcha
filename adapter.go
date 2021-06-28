@@ -36,7 +36,11 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*Response, error) {
 	}
 
 	if ra.RoundTripper == nil {
-		ra.RoundTripper = http.DefaultTransport
+		var defaultTransport = http.DefaultTransport.(*http.Transport)
+		if p := options.Proxy; p != nil {
+			defaultTransport.Proxy = http.ProxyURL(p)
+		}
+		ra.RoundTripper = defaultTransport
 	}
 
 	req := ra.Request(options)

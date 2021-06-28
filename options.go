@@ -47,6 +47,10 @@ type Options struct {
 	// You shouldn't need to modify this in most cases.
 	FullUrl *url.URL
 
+	// Proxy URL.
+	// If this is an authenticated Proxy, make sure Username and Password are set.
+	Proxy *url.URL
+
 	// Retry on failure.
 	Retry bool
 
