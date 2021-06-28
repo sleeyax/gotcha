@@ -1,3 +1,5 @@
+// Package gotcha is an advanced HTTP client with a got-like API.
+// It can interface with other HTTP packages through an adapter.
 package gotcha
 
 func DoRequest(url string, method string, options ...*Options) (*Response, error) {
