@@ -28,8 +28,12 @@ func NewAdapter(clientHello tls.ClientHelloID, proxyUrl ...string) *Adapter {
 	}
 }
 
-func (cca *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
-	client, err := cclient.NewClient(cca.ClientHello, cca.proxyUrl)
+func (a *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
+	if options.Proxy != nil {
+		a.proxyUrl = options.Proxy.String()
+	}
+
+	client, err := cclient.NewClient(a.ClientHello, a.proxyUrl)
 	if err != nil {
 		return nil, err
 	}
