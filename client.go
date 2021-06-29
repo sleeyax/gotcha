@@ -241,7 +241,7 @@ func (c *Client) CloseBody() {
 	c.Options.Json = nil
 }
 
-// ParseBody parses Form or Json (in that order) into Content.
+// ParseBody parses Form or Json (in that order) into Body.
 func (c *Client) ParseBody() error {
 	if len(c.Options.Form) != 0 {
 		encoded := c.Options.Form.EncodeWithOrder()
