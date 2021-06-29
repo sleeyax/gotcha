@@ -28,6 +28,7 @@ func main() {
 ```
 
 ## Test
-`go test ./cclient`
-
-`go run ./main.go`
+```shell
+$ go test ./cclient
+$ go run ./main.go
+```
