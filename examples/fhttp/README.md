@@ -37,6 +37,6 @@ func main() {
 ```
 
 ## Test
-````shell
+```shell
 $ go run ./main.go
-````
+```
