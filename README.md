@@ -32,7 +32,7 @@ func main() {
 	// Output: <!DOCTYPE html>...
 }
 ```
-#### Configuration options
+### Configuration options
 When you require further customization of the request, you can do so by specifying configuration `Options`:
 ```go
 package main
@@ -96,5 +96,3 @@ func main() {
 	// Output: "about to send a request to https://httpbin.org/anything with method PUT"
 }
 ```
-## Documentation
-See the [package reference](https://pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
