@@ -54,7 +54,7 @@ type Options struct {
 	// Retry on failure.
 	Retry bool
 
-	// Additional configuration options for Retry.
+	// Additional configuration Options for Retry.
 	RetryOptions *RetryOptions
 
 	// Amount of retries that have been done so far.
@@ -114,7 +114,7 @@ type Options struct {
 	// Defines if redirect responses should be followed automatically.
 	FollowRedirect bool
 
-	// Additional configuration options for FollowRedirect.
+	// Additional configuration Options for FollowRedirect.
 	RedirectOptions RedirectOptions
 
 	// List of URls that have responded with a redirect so far.
@@ -204,7 +204,7 @@ func NewDefaultRetryOptions() *RetryOptions {
 	}
 }
 
-// Extend updates values from the current Options with values from the specified options.
+// Extend updates values from the current Options with values from the specified Options.
 func (o *Options) Extend(options *Options) (*Options, error) {
 	optionsValue := *options
 	dst := optionsValue

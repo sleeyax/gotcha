@@ -31,7 +31,7 @@ func TestClient_Extend(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if client2.options.PrefixURL != prefixUrl {
+	if client2.Options.PrefixURL != prefixUrl {
 		t.FailNow()
 	}
 }
@@ -103,12 +103,12 @@ func TestClient_DoRequest_Body(t *testing.T) {
 
 	testType = "raw body"
 	wantedBody = "hello world!"
-	client.options.Body = io.NopCloser(strings.NewReader(wantedBody))
+	client.Options.Body = io.NopCloser(strings.NewReader(wantedBody))
 	client.Post(url)
 
 	testType = "form"
 	wantedBody = "foo=bar&abc=def"
-	client.options.Form = urlValues.Values{
+	client.Options.Form = urlValues.Values{
 		"foo":              {"bar"},
 		"abc":              {"def"},
 		urlValues.OrderKey: []string{"foo", "abc"},
@@ -119,7 +119,7 @@ func TestClient_DoRequest_Body(t *testing.T) {
 	wantedBody = `{"a":"b","c":["d","e","f"],"g":{"h":"i"}}`
 	var result JSON
 	json.Unmarshal([]byte(wantedBody), &result)
-	client.options.Json = result
+	client.Options.Json = result
 	client.Post(url)
 }
 
@@ -225,7 +225,7 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	}
 
 	// test rewrite methods
-	client.options.Body = io.NopCloser(strings.NewReader("hello world!"))
+	client.Options.Body = io.NopCloser(strings.NewReader("hello world!"))
 	res, err := client.Post(ts.URL + "/")
 	if err != nil {
 		t.Fatal(err)

@@ -57,7 +57,7 @@ func TestHooks_BeforeRequest(t *testing.T) {
 		t.FailNow()
 	}
 
-	if m := client.options.Method; m != "POST" {
+	if m := client.Options.Method; m != "POST" {
 		t.Fatalf(tests.MismatchFormat, "method", "POST", m)
 	}
 }
@@ -95,7 +95,7 @@ func TestHooks_BeforeRedirect(t *testing.T) {
 		t.FailNow()
 	}
 
-	if u := client.options.FullUrl.String(); u != prefixUrl+"/home" {
+	if u := client.Options.FullUrl.String(); u != prefixUrl+"/home" {
 		t.Fatalf(tests.MismatchFormat, "full url", prefixUrl+"/home", u)
 	}
 }

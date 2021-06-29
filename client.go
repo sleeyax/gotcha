@@ -11,7 +11,8 @@ import (
 )
 
 type Client struct {
-	options *Options
+	// Instance-specific configuration options.
+	Options *Options
 }
 
 // NewClient creates a new HTTP client based on default Options which can be extended.
@@ -22,7 +23,7 @@ func NewClient(options *Options) (*Client, error) {
 
 // Extend returns a new Client with merged Options.
 func (c *Client) Extend(options *Options) (*Client, error) {
-	opts, err := c.options.Extend(options)
+	opts, err := c.Options.Extend(options)
 	if err != nil {
 		return nil, err
 	}
@@ -30,58 +31,58 @@ func (c *Client) Extend(options *Options) (*Client, error) {
 }
 
 func (c *Client) DoRequest(method string, url string, options ...*Options) (*Response, error) {
-	for _, hook := range c.options.Hooks.Init {
-		hook(c.options)
+	for _, hook := range c.Options.Hooks.Init {
+		hook(c.Options)
 	}
 
 	for _, option := range options {
 		var err error
-		c.options, err = c.options.Extend(option)
+		c.Options, err = c.Options.Extend(option)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	u, err := utils.MergeUrl(c.options.PrefixURL, url)
+	u, err := utils.MergeUrl(c.Options.PrefixURL, url, false)
 	if err != nil {
 		return nil, err
 	}
 
-	c.options.FullUrl = u
-	c.options.Method = method
-	c.options.URI = url
+	c.Options.FullUrl = u
+	c.Options.Method = method
+	c.Options.URI = url
 
-	if sp := c.options.SearchParams; len(sp) != 0 {
-		c.options.FullUrl.RawQuery = sp.EncodeWithOrder()
+	if sp := c.Options.SearchParams; len(sp) != 0 {
+		c.Options.FullUrl.RawQuery = sp.EncodeWithOrder()
 	}
 
 	c.ParseBody()
 	defer c.CloseBody()
 
 	retry := func(res *Response, err error) (*Response, error) {
-		for _, hook := range c.options.Hooks.BeforeRetry {
-			hook(c.options, err, c.options.retries)
+		for _, hook := range c.Options.Hooks.BeforeRetry {
+			hook(c.Options, err, c.Options.retries)
 		}
 		timeout, e := c.getTimeout(res)
 		if e != nil {
 			return nil, e
 		}
-		timeout = c.options.RetryOptions.CalculateTimeout(c.options.retries, c.options.RetryOptions, timeout, err)
+		timeout = c.Options.RetryOptions.CalculateTimeout(c.Options.retries, c.Options.RetryOptions, timeout, err)
 		time.Sleep(timeout)
-		c.options.retries++
+		c.Options.retries++
 		return c.DoRequest(method, url)
 	}
 
-	for _, hook := range c.options.Hooks.BeforeRequest {
-		hook(c.options)
+	for _, hook := range c.Options.Hooks.BeforeRequest {
+		hook(c.Options)
 	}
 
-	res, err := c.options.Adapter.DoRequest(c.options)
+	res, err := c.Options.Adapter.DoRequest(c.Options)
 
 	if err == nil {
-		for _, hook := range c.options.Hooks.AfterResponse {
+		for _, hook := range c.Options.Hooks.AfterResponse {
 			var retryFunc RetryFunc = func(o *Options) (*Response, error) {
-				c.options, err = c.options.Extend(o)
+				c.Options, err = c.Options.Extend(o)
 				if err != nil {
 					return nil, err
 				}
@@ -97,57 +98,57 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 		}
 	}
 
-	if err != nil && (!c.options.Retry || (c.options.retries >= c.options.RetryOptions.Limit)) {
+	if err != nil && (!c.Options.Retry || (c.Options.retries >= c.Options.RetryOptions.Limit)) {
 		return nil, err
 	}
 
-	if c.options.Retry {
-		if c.options.retries >= c.options.RetryOptions.Limit {
+	if c.Options.Retry {
+		if c.Options.retries >= c.Options.RetryOptions.Limit {
 			return res, NewMaxRetriesExceededError()
 		}
 
-		if (err != nil && utils.StringArrayContains(c.options.RetryOptions.ErrorCodes, err.Error())) || (utils.IntArrayContains(c.options.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(c.options.RetryOptions.Methods, method)) {
+		if (err != nil && utils.StringArrayContains(c.Options.RetryOptions.ErrorCodes, err.Error())) || (utils.IntArrayContains(c.Options.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(c.Options.RetryOptions.Methods, method)) {
 			return retry(res, err)
 		}
 	}
 
-	if c.options.FollowRedirect && res.Header.Get("location") != "" && utils.IntArrayContains(RedirectStatusCodes, res.StatusCode) {
+	if c.Options.FollowRedirect && res.Header.Get("location") != "" && utils.IntArrayContains(RedirectStatusCodes, res.StatusCode) {
 		// we don't care about the response since we're redirecting
 		res.Body.Close()
 
-		if c.options.RedirectOptions.Limit != 0 && len(c.options.redirectUrls) >= c.options.RedirectOptions.Limit {
-			return nil, NewMaxRedirectsExceededError(len(c.options.redirectUrls))
+		if c.Options.RedirectOptions.Limit != 0 && len(c.Options.redirectUrls) >= c.Options.RedirectOptions.Limit {
+			return nil, NewMaxRedirectsExceededError(len(c.Options.redirectUrls))
 		}
 
-		if c.options.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && c.options.Method != "GET" && c.options.Method != "HEAD") {
-			c.options.Method = "GET"
+		if c.Options.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && c.Options.Method != "GET" && c.Options.Method != "HEAD") {
+			c.Options.Method = "GET"
 			c.CloseBody()
-			c.options.Headers.Del("content-length")
-			c.options.Headers.Del("content-type")
+			c.Options.Headers.Del("content-length")
+			c.Options.Headers.Del("content-type")
 		}
 
-		currentUrl := c.options.FullUrl
-		redirectUrl, err := utils.MergeUrl(currentUrl.String(), res.Header.Get("location"))
+		currentUrl := c.Options.FullUrl
+		redirectUrl, err := utils.MergeUrl(currentUrl.String(), res.Header.Get("location"), true)
 		if err != nil {
 			return nil, err
 		}
 
 		// remove sensitive headers when redirecting to a different domain
 		if redirectUrl.Hostname() != currentUrl.Hostname() || redirectUrl.Port() != currentUrl.Port() {
-			c.options.Headers.Del("host")
-			c.options.Headers.Del("cookie")
-			c.options.Headers.Del("authorization")
+			c.Options.Headers.Del("host")
+			c.Options.Headers.Del("cookie")
+			c.Options.Headers.Del("authorization")
 		}
 
 		c.updateRequestCookies(res)
-		c.options.PrefixURL = ""
-		c.options.redirectUrls = append(c.options.redirectUrls, redirectUrl)
+		c.Options.PrefixURL = ""
+		c.Options.redirectUrls = append(c.Options.redirectUrls, redirectUrl)
 
-		for _, hook := range c.options.Hooks.BeforeRedirect {
-			hook(c.options, res)
+		for _, hook := range c.Options.Hooks.BeforeRedirect {
+			hook(c.Options, res)
 		}
 
-		return c.DoRequest(c.options.Method, redirectUrl.String())
+		return c.DoRequest(c.Options.Method, redirectUrl.String())
 	}
 
 	return res, nil
@@ -157,8 +158,8 @@ func (c *Client) getTimeout(response *Response) (time.Duration, error) {
 	retryAfter := strings.TrimSpace(response.Header.Get("retry-after"))
 
 	// response header doesn't specify timeout, default to request timeout
-	if retryAfter == "" || c.options.RetryOptions.RetryAfter == false {
-		return c.options.Timeout, nil
+	if retryAfter == "" || c.Options.RetryOptions.RetryAfter == false {
+		return c.Options.Timeout, nil
 	}
 
 	// retryAfter is <delay-seconds>
@@ -188,7 +189,7 @@ func (c *Client) getTimeout(response *Response) (time.Duration, error) {
 // regardless of domain or path.
 func (c *Client) updateRequestCookies(response *Response) {
 	cookies := c.getRequestCookies()
-	if c.options.CookieJar != nil && cookies != nil {
+	if c.Options.CookieJar != nil && cookies != nil {
 		// changed denotes whether or not a response cookie has a different value than a request cookie
 		var changed bool
 		for _, cookie := range response.Cookies() {
@@ -198,14 +199,14 @@ func (c *Client) updateRequestCookies(response *Response) {
 			}
 		}
 		if changed {
-			c.options.Headers.Del("Cookie")
+			c.Options.Headers.Del("Cookie")
 			var cks []string
 			for _, cs := range cookies {
 				for _, cookie := range cs {
 					cks = append(cks, cookie.Name+"="+cookie.Value)
 				}
 			}
-			c.options.Headers.Set("Cookie", strings.Join(cks, "; "))
+			c.Options.Headers.Set("Cookie", strings.Join(cks, "; "))
 		}
 	}
 }
@@ -214,9 +215,9 @@ func (c *Client) updateRequestCookies(response *Response) {
 func (c *Client) getRequestCookies() map[string][]*http.Cookie {
 	var cookies map[string][]*http.Cookie
 
-	if c.options.CookieJar != nil && c.options.Headers.Get("cookie") != "" {
+	if c.Options.CookieJar != nil && c.Options.Headers.Get("cookie") != "" {
 		cookies = make(map[string][]*http.Cookie)
-		req := http.Request{Header: c.options.Headers}
+		req := http.Request{Header: c.Options.Headers}
 		for _, c := range req.Cookies() {
 			cookies[c.Name] = append(cookies[c.Name], c)
 		}
@@ -227,26 +228,26 @@ func (c *Client) getRequestCookies() map[string][]*http.Cookie {
 
 // CloseBody clears the Body, Form and Json fields.
 func (c *Client) CloseBody() {
-	if c.options.Body != nil {
-		c.options.Body.Close()
+	if c.Options.Body != nil {
+		c.Options.Body.Close()
 	}
-	c.options.Body = nil
-	c.options.Form = nil
-	c.options.Json = nil
+	c.Options.Body = nil
+	c.Options.Form = nil
+	c.Options.Json = nil
 }
 
 // ParseBody parses Form or Json (in that order) into Content.
 func (c *Client) ParseBody() error {
-	if len(c.options.Form) != 0 {
-		encoded := c.options.Form.EncodeWithOrder()
-		c.options.Body = io.NopCloser(strings.NewReader(encoded))
+	if len(c.Options.Form) != 0 {
+		encoded := c.Options.Form.EncodeWithOrder()
+		c.Options.Body = io.NopCloser(strings.NewReader(encoded))
 		return nil
-	} else if j := c.options.Json; len(j) != 0 {
-		bytes, err := c.options.MarshalJson(j)
+	} else if j := c.Options.Json; len(j) != 0 {
+		bytes, err := c.Options.MarshalJson(j)
 		if err != nil {
 			return err
 		}
-		c.options.Body = io.NopCloser(bytesPkg.NewReader(bytes))
+		c.Options.Body = io.NopCloser(bytesPkg.NewReader(bytes))
 		return nil
 	}
 	return nil

@@ -43,7 +43,7 @@ func TestOptions_Merge(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// test merged options fields
+	// test merged Options fields
 	if u := options.URI; u != right.URI {
 		t.Errorf(tests.MismatchFormat, "url", right.URI, u)
 	}
@@ -85,7 +85,7 @@ func TestOptions_Merge(t *testing.T) {
 	}
 
 	if ro := options.RedirectOptions; ro != right.RedirectOptions {
-		t.Errorf(tests.MismatchFormat, "redirect options", right.RedirectOptions, ro)
+		t.Errorf(tests.MismatchFormat, "redirect Options", right.RedirectOptions, ro)
 	}
 
 	if len(options.Hooks.BeforeRequest) == 0 {

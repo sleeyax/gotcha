@@ -20,14 +20,14 @@ type Hooks struct {
 	// Gotcha will make no further changes to the Options before it is sent to the Adapter.
 	//
 	// Note that changing Options.Json or Options.Form has no effect on the request,
-	// you should change Options.Body instead and (if needed) update the options.headers accordingly.
+	// you should change Options.Body instead and (if needed) update the Options.headers accordingly.
 	BeforeRequest []BeforeRequestHook
 
-	// Called with normalized request options and the redirect response.
+	// Called with normalized request Options and the redirect response.
 	// Gotcha will make no further changes to the request.
 	BeforeRedirect []BeforeRedirectHook
 
-	// Called with normalized request options, the error and the retry count.
+	// Called with normalized request Options, the error and the retry count.
 	// Gotcha will make no further changes to the request.
 	BeforeRetry []BeforeRetryHook
 

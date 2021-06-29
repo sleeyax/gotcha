@@ -9,7 +9,7 @@ func TestMergeUrl(t *testing.T) {
 	u1 := "https://example.com/a/b"
 	u2 := "https://domain.example.com/b/c"
 
-	url, err := MergeUrl(u1, u2)
+	url, err := MergeUrl(u1, u2, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestMergeUrl(t *testing.T) {
 
 	u2 = "/foo/bar"
 
-	url, err = MergeUrl(u1, u2)
+	url, err = MergeUrl(u1, u2, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestMergeUrl(t *testing.T) {
 	u1 = ""
 	u2 = "https://example.com"
 
-	url, err = MergeUrl(u1, u2)
+	url, err = MergeUrl(u1, u2, true)
 	if err != nil {
 		t.Fatal(err)
 	}
