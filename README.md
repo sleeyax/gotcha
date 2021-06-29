@@ -3,7 +3,7 @@
   <p>gotcha</p>
 </h1>
 
-[![Go Reference](https://pkg.go.dev/badge/pkg.go.dev/github.com/sleeyax/gotcha.svg)](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha)
+[![Go Reference](https://pkg.go.dev/badge/github.com/sleeyax/gotcha.svg)](https://pkg.go.dev/github.com/sleeyax/gotcha)
 
 Gotcha is an alternative to Go's [http client](https://golang.org/src/net/http/client.go), 
 with an API inspired by [got](https://github.com/sindresorhus/got).
@@ -97,4 +97,4 @@ func main() {
 }
 ```
 ## Documentation
-See the [package reference](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
+See the [package reference](https://pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
