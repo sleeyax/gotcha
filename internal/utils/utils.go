@@ -26,7 +26,7 @@ func IntArrayContains(values []int, i int) bool {
 }
 
 // MergeUrl computes the actual request url by combining prefixUrl and url.
-// If both prefixUrl and url are absolute, gotcha will assume prefixUrl to be the root url.
+// If both prefixUrl and url are absolute, gotcha will assume url to be the root url.
 func MergeUrl(prefixUrl string, url string) (*urlPkg.URL, error) {
 	if prefixUrl == "" {
 		return urlPkg.Parse(url)
@@ -46,11 +46,9 @@ func MergeUrl(prefixUrl string, url string) (*urlPkg.URL, error) {
 		return nil, err
 	}
 
-	if !u.IsAbs() {
-		return pu.Parse(url)
+	if u.IsAbs() {
+		return u, nil
 	}
 
-	pu.RawPath = u.RawPath
-	pu.Path = u.Path
-	return pu, nil
+	return pu.Parse(url)
 }

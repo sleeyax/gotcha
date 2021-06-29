@@ -14,8 +14,8 @@ func TestMergeUrl(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if u := url.String(); u != "https://example.com/b/c" {
-		t.Fatalf(tests.MismatchFormat, "url", "https://example.com/b/c", u)
+	if u := url.String(); u != u2 {
+		t.Fatalf(tests.MismatchFormat, "url", u2, u)
 	}
 
 	u2 = "/foo/bar"
