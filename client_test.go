@@ -2,6 +2,7 @@ package gotcha
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Sleeyax/urlValues"
 	"github.com/sleeyax/gotcha/internal/tests"
 	"io"
@@ -242,4 +243,27 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	if _, ok := err.(*MaxRedirectsExceededError); !ok {
 		t.Fatal(err)
 	}
+}
+
+func ExampleNewClient() {
+	client, err := NewClient(&Options{
+		PrefixURL: "https://httpbin.org/",
+		Headers: http.Header{
+			"user-agent": {"gotcha"},
+		},
+	})
+	if err != nil {
+		fmt.Sprintln("error:", err)
+	}
+
+	res, err := client.Do(http.MethodGet, "https://httpbin.org/get")
+	if err != nil {
+		fmt.Sprintln("error:", err)
+	}
+
+	json, _ := res.Json()
+	headers := json["headers"].(map[string]interface{})
+
+	fmt.Println(res.StatusCode)
+	fmt.Println(headers["User-Agent"])
 }

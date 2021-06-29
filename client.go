@@ -154,6 +154,11 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 	return res, nil
 }
 
+// Do is an alias of DoRequest.
+func (c *Client) Do(method string, url string, options ...*Options) (*Response, error) {
+	return c.DoRequest(method, url, options...)
+}
+
 func (c *Client) getTimeout(response *Response) (time.Duration, error) {
 	retryAfter := strings.TrimSpace(response.Header.Get("retry-after"))
 
