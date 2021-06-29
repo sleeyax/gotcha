@@ -9,7 +9,7 @@ Gotcha is an alternative to Go's [http client](https://golang.org/src/net/http/c
 with an API inspired by [got](https://github.com/sindresorhus/got).
 It can interface with other HTTP packages through an adapter.
 
-Example adapter implementations of [fhttp](https://github.com/zMrKrabz/fhttp) & [cclient](https://github.com/x04/cclient) can be found in the [examples](examples) directory.
+Example adapter implementations of [fhttp](https://github.com/useflyent/fhttp) & [cclient](https://github.com/x04/cclient) can be found in the [examples](examples) directory.
 
 ## Usage
 ### Top-Level API
@@ -33,7 +33,7 @@ func main() {
 }
 ```
 #### Configuration options
-When you require further customization of the request, you can do by specifying configuration `Options`:
+When you require further customization of the request, you can do so by specifying configuration `Options`:
 ```go
 package main
 
@@ -97,4 +97,4 @@ func main() {
 }
 ```
 ## Documentation
-See [package reference](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
+See the [package reference](https://pkg.go.dev/pkg.go.dev/github.com/sleeyax/gotcha) for detailed API documentation.
