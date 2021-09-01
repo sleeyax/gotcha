@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/sleeyax/gotcha"
-	"github.com/sleeyax/gotcha/examples/default-http-client/fhttp"
+	"github.com/sleeyax/gotcha/adapters/fhttp"
 	http "github.com/useflyent/fhttp"
 	"log"
 )
