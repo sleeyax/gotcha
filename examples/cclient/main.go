@@ -3,7 +3,7 @@ package main
 import (
 	tls "github.com/refraction-networking/utls"
 	"github.com/sleeyax/gotcha"
-	"github.com/sleeyax/gotcha/examples/default-http-client/cclient"
+	"github.com/sleeyax/gotcha/adapters/cclient"
 	"log"
 )
 

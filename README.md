@@ -9,7 +9,7 @@ Gotcha is an alternative to Go's [http client](https://golang.org/src/net/http/c
 with an API inspired by [got](https://github.com/sindresorhus/got).
 It can interface with other HTTP packages through an adapter.
 
-Example adapter implementations of [fhttp](https://github.com/useflyent/fhttp) & [cclient](https://github.com/x04/cclient) can be found in the [examples](examples) directory.
+Aadapter implementations for [fhttp](https://github.com/useflyent/fhttp), [cclient](https://github.com/x04/cclient) & [fasthttp](https://github.com/valyala/fasthttp) can be found in the [adapters](adapters) directory.
 
 ## Usage
 ### Top-Level API
@@ -96,3 +96,5 @@ func main() {
 	// Output: "about to send a request to https://httpbin.org/anything with method PUT"
 }
 ```
+
+See [examples](examples) for more adapter-specific examples.

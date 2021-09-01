@@ -1,6 +1,6 @@
 module github.com/sleeyax/gotcha/adapters/fasthttp
 
-go 1.17
+go 1.16
 
 require (
 	github.com/sleeyax/gotcha v0.0.2

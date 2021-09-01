@@ -3,8 +3,8 @@ github.com/Sleeyax/urlValues v1.0.0/go.mod h1:IiljpGAUgWNsPFduJzF/fBnlfRwNvRPGG7
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
 github.com/imdario/mergo v0.3.12/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/refraction-networking/utls v0.0.0-20200806014556-219d12d0a4a1/go.mod h1:tz9gX959MEFfFN5whTIocCLUG57WiILqtdVxI8c6Wj0=
-github.com/refraction-networking/utls v0.0.0-20201210053706-2179f286686b h1:lzo71oHzQEz0fKMSjR0BpVzuh2hOHvJTxnN3Rnikmtg=
-github.com/refraction-networking/utls v0.0.0-20201210053706-2179f286686b/go.mod h1:tz9gX959MEFfFN5whTIocCLUG57WiILqtdVxI8c6Wj0=
+github.com/refraction-networking/utls v0.0.0-20210713165636-0b2885c8c0d4 h1:n9NMHJusHylTmtaJ0Qe0VV9dkTZLiwAxHmrI/l98GeE=
+github.com/refraction-networking/utls v0.0.0-20210713165636-0b2885c8c0d4/go.mod h1:tz9gX959MEFfFN5whTIocCLUG57WiILqtdVxI8c6Wj0=
 github.com/x04/cclient v0.0.0-20210412053913-a370c55a8adf h1:QlWtIXKbx+MDVcyVZv7UJfrKLQaUU+LS0MNzV0W06Q8=
 github.com/x04/cclient v0.0.0-20210412053913-a370c55a8adf/go.mod h1:pUYN9fp/WNW35k4W4BvF7IgvgF9ykvAC5AIGoJTRSZk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

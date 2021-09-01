@@ -8,7 +8,7 @@ package main
 import (
 	tls "github.com/refraction-networking/utls"
 	"github.com/sleeyax/gotcha"
-	"github.com/sleeyax/gotcha/examples/cclient/cclient"
+	"github.com/sleeyax/gotcha/adapters/cclient"
 )
 
 func main() {

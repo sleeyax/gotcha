@@ -1,4 +1,4 @@
-module github.com/sleeyax/gotcha/examples/default-http-client
+module github.com/sleeyax/gotcha/examples/default-http
 
 go 1.16
 
