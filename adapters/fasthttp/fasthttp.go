@@ -96,12 +96,9 @@ func toResponse(ctx *fasthttp.RequestCtx) (*http.Response, error) {
 		Proto:            "HTTP/1.1",
 		ProtoMajor:       1,
 		ProtoMinor:       1,
-		Header:           nil,
 		Body:             ioutil.NopCloser(bytes.NewBuffer(ctx.Response.Body())),
 		ContentLength:    int64(len(ctx.Response.Body())),
-		TransferEncoding: nil,
 		Uncompressed:     false,
-		Trailer:          nil,
 		Request:          r,
 		TLS:              ctx.TLSConnectionState(),
 	}
