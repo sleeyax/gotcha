@@ -19,7 +19,7 @@ func (a *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
 	req := &fhttpPkg.Request{
 		Method: options.Method,
 		URL:    options.FullUrl,
-		Header: fhttpPkg.Header(options.Headers),
+		Header: fhttpPkg.Header(options.Headers.Clone()),
 		Body:   options.Body,
 	}
 
