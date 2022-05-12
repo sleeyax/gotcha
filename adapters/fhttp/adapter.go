@@ -2,13 +2,13 @@ package fhttp
 
 import (
 	"github.com/sleeyax/gotcha"
-	fhttpPkg "github.com/useflyent/fhttp"
+	fhttp "github.com/useflyent/fhttp"
 	"net/http"
 )
 
 type Adapter struct {
 	// Optional fhttp Transport options.
-	Transport *fhttpPkg.Transport
+	Transport *fhttp.Transport
 }
 
 func NewAdapter() *Adapter {
@@ -16,24 +16,24 @@ func NewAdapter() *Adapter {
 }
 
 func (a *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
-	req := &fhttpPkg.Request{
+	req := &fhttp.Request{
 		Method: options.Method,
 		URL:    options.FullUrl,
-		Header: fhttpPkg.Header(options.Headers.Clone()),
+		Header: fhttp.Header(options.Headers.Clone()),
 		Body:   options.Body,
 	}
 
 	if a.Transport == nil {
-		a.Transport = fhttpPkg.DefaultTransport.(*fhttpPkg.Transport)
+		a.Transport = fhttp.DefaultTransport.(*fhttp.Transport)
 	}
 
 	if options.Proxy != nil {
-		a.Transport.Proxy = fhttpPkg.ProxyURL(options.Proxy)
+		a.Transport.Proxy = fhttp.ProxyURL(options.Proxy)
 	}
 
 	if options.CookieJar != nil {
 		for _, cookie := range options.CookieJar.Cookies(options.FullUrl) {
-			req.AddCookie(&fhttpPkg.Cookie{Name: cookie.Name, Value: cookie.Value})
+			req.AddCookie(&fhttp.Cookie{Name: cookie.Name, Value: cookie.Value})
 		}
 	}
 
@@ -54,7 +54,7 @@ func (a *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
 }
 
 // toResponse converts fhttp response to an original http response.
-func toResponse(req *fhttpPkg.Request, res *fhttpPkg.Response) *http.Response {
+func toResponse(req *fhttp.Request, res *fhttp.Response) *http.Response {
 	return &http.Response{
 		Status:           res.Status,
 		StatusCode:       res.StatusCode,
@@ -74,7 +74,7 @@ func toResponse(req *fhttpPkg.Request, res *fhttpPkg.Response) *http.Response {
 }
 
 // toResponse converts a fhttp request to an original http response.
-func toRequest(req *fhttpPkg.Request) *http.Request {
+func toRequest(req *fhttp.Request) *http.Request {
 	return &http.Request{
 		Method: req.Method,
 		URL:    req.URL,
