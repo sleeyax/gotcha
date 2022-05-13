@@ -27,9 +27,10 @@ func (a *Adapter) DoRequest(options *gotcha.Options) (*gotcha.Response, error) {
 		a.Transport = fhttp.DefaultTransport.(*fhttp.Transport)
 	}
 
-	if options.Proxy != nil {
+	// TODO: fix upstream: proxies seem to not work with custom TLS settings via DialTLSContext. As a work around, ssers should connect to the proxy in DialTLScontext instead.
+	/*if options.Proxy != nil {
 		a.Transport.Proxy = fhttp.ProxyURL(options.Proxy)
-	}
+	}*/
 
 	if options.CookieJar != nil {
 		for _, cookie := range options.CookieJar.Cookies(options.FullUrl) {
