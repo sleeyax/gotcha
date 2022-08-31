@@ -2,6 +2,7 @@ package gotcha
 
 import (
 	bytesPkg "bytes"
+	"github.com/Sleeyax/urlValues"
 	"github.com/sleeyax/gotcha/internal/utils"
 	"io"
 	"net/http"
@@ -53,7 +54,11 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 	c.Options.URI = url
 
 	if sp := c.Options.SearchParams; len(sp) != 0 {
-		c.Options.FullUrl.RawQuery = sp.EncodeWithOrder()
+		if _, ok := sp[urlValues.OrderKey]; ok {
+			c.Options.FullUrl.RawQuery = sp.EncodeWithOrder()
+		} else {
+			c.Options.FullUrl.RawQuery = sp.Encode()
+		}
 	}
 
 	c.ParseBody()
