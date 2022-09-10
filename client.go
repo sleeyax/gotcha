@@ -77,7 +77,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 		timeout = o.RetryOptions.CalculateTimeout(o.retries, o.RetryOptions, timeout, err)
 		time.Sleep(timeout)
 		o.retries++
-		return c.DoRequest(method, url)
+		return c.DoRequest(method, url, o)
 	}
 
 	for _, hook := range o.Hooks.BeforeRequest {
@@ -124,7 +124,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 		res.Body.Close()
 
 		if o.RedirectOptions.Limit != 0 && len(o.redirectUrls) >= o.RedirectOptions.Limit {
-			return nil, NewMaxRedirectsExceededError(len(o.redirectUrls))
+			return res, NewMaxRedirectsExceededError(len(o.redirectUrls))
 		}
 
 		if o.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && o.Method != http.MethodGet && o.Method != http.MethodHead) {
@@ -155,7 +155,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 			hook(o, res)
 		}
 
-		return c.DoRequest(o.Method, redirectUrl.String())
+		return c.DoRequest(o.Method, redirectUrl.String(), o)
 	}
 
 	return res, nil
@@ -167,11 +167,16 @@ func (c *Client) Do(method string, url string, options ...*Options) (*Response, 
 }
 
 func (c *Client) getTimeout(o *Options, response *Response) (time.Duration, error) {
+	if o.RetryOptions.RetryAfter == false {
+		return 0, nil
+	}
+
 	retryAfter := strings.TrimSpace(response.Header.Get("retry-after"))
 
-	// response header doesn't specify timeout, default to request timeout
-	if retryAfter == "" || o.RetryOptions.RetryAfter == false {
-		return o.Timeout, nil
+	// Response header doesn't specify timeout, so default to 0.
+	// Note that the user can still overwrite this behaviour in the configuration RetryOptions.
+	if retryAfter == "" {
+		return 0, nil
 	}
 
 	// retryAfter is <delay-seconds>

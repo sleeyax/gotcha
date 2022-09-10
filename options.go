@@ -140,13 +140,13 @@ type RetryOptions struct {
 	// Respect the response 'Retry-After' header, if set.
 	//
 	// If RetryAfter is false or the response headers don't contain this header,
-	// it will default to the configured request Timeout.
+	// it will default to 0. You can specify a custom timeout with CalculateTimeout.
 	//
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
 	RetryAfter bool
 
 	// CalculateTimeout is a function that computes the timeout to use between retries.
-	// By default 'computedTimeout' will be used as timeout value.
+	// By default, `computedTimeout` will be used as timeout value.
 	CalculateTimeout func(retries int, retryOptions *RetryOptions, computedTimeout time.Duration, error error) time.Duration
 }
 

@@ -5,6 +5,7 @@ import (
 	"github.com/sleeyax/gotcha/internal/tests"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -88,7 +89,7 @@ func TestHooks_BeforeRedirect(t *testing.T) {
 		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
 			header := http.Header{}
 			header.Add("location", "/home")
-			return NewResponse(&http.Response{StatusCode: 302, Header: header, Body: io.NopCloser(bytes.NewReader([]byte{}))})
+			return NewResponse(&http.Response{Request: &http.Request{URL: options.FullUrl}, StatusCode: 302, Header: header, Body: io.NopCloser(bytes.NewReader([]byte{}))})
 		}},
 		FollowRedirect: true,
 		RedirectOptions: RedirectOptions{
@@ -99,18 +100,27 @@ func TestHooks_BeforeRedirect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client.Get("https://example.com")
+
+	res, err := client.Get("https://example.com")
+	if _, ok := err.(*MaxRedirectsExceededError); !ok {
+		t.Fatal(err)
+	}
 
 	if !hooked {
 		t.FailNow()
 	}
 
-	if u := client.Options.FullUrl.String(); u != prefixUrl+"/home" {
+	if u := res.Request.URL.String(); u != prefixUrl+"/home" {
 		t.Fatalf(tests.MismatchFormat, "full url", prefixUrl+"/home", u)
 	}
 }
 
 func TestHooks_BeforeRetry_And_AfterResponse(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	}))
+	defer ts.Close()
+
 	var hookedBeforeRetry bool
 	var hookedAfterResponse bool
 
@@ -131,7 +141,7 @@ func TestHooks_BeforeRetry_And_AfterResponse(t *testing.T) {
 			},
 		},
 	})
-	res, _ := client.Get("https://example.com")
+	res, _ := client.Get(ts.URL)
 
 	if !hookedBeforeRetry || !hookedAfterResponse {
 		t.FailNow()
