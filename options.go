@@ -204,21 +204,25 @@ func NewDefaultRetryOptions() *RetryOptions {
 	}
 }
 
-// Extend updates values from the current Options with values from the specified Options.
+// Extend extends the current Options by the provided Options.
+// The value returned is a pointer to a newly allocated Options value.
 func (o *Options) Extend(options *Options) (*Options, error) {
-	optionsValue := *options
-	dst := optionsValue
-	// This check is necessary to fix weird 'panic: reflect: Field index out of range' error.
-	// Mentioned error probably occurs because mergo can't decide how to merge Adapter structs that contain non-primitive fields
-	// (i.e (nested) struct fields).
-	//
-	// The code below assures to just set the new adapter whenever it's not nil, skipping mergo's opeeration in the process.
-	if options.Adapter != nil {
-		o.Adapter = options.Adapter
+	// Create new copies of source and dest.
+	dst := *options
+	src := *o
+
+	// Exclude Adapter from being merged
+	src.Adapter = nil
+
+	if err := mergo.Merge(&dst, src); err != nil {
+		return nil, err
 	}
 
-	if err := mergo.Merge(&dst, o); err != nil {
-		return nil, err
+	// Set the adapter again, if specified in either the parent or provided config.
+	if options.Adapter != nil {
+		dst.Adapter = options.Adapter
+	} else if o.Adapter != nil {
+		dst.Adapter = o.Adapter
 	}
 
 	// Mergo doesn't have an option to override bool zero values *only*, so we'll just do it ourselves.

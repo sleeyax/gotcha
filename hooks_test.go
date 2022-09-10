@@ -13,7 +13,14 @@ func createClient(t *testing.T, hooks Hooks) *Client {
 	client, err := NewClient(&Options{
 		Hooks: hooks,
 		Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
-			return NewResponse(&http.Response{})
+			return NewResponse(&http.Response{
+				Request: &http.Request{
+					Method: options.Method,
+					URL:    options.FullUrl,
+					Body:   options.Body,
+					Header: options.Headers,
+				},
+			})
 		}},
 	})
 	if err != nil {
@@ -51,13 +58,16 @@ func TestHooks_BeforeRequest(t *testing.T) {
 			},
 		},
 	})
-	client.Get("https://example.com")
+	res, err := client.Get("https://example.com")
+	if err != nil {
+		t.FailNow()
+	}
 
 	if !hooked {
 		t.FailNow()
 	}
 
-	if m := client.Options.Method; m != http.MethodPost {
+	if m := res.Request.Method; m != http.MethodPost {
 		t.Fatalf(tests.MismatchFormat, "method", http.MethodPost, m)
 	}
 }

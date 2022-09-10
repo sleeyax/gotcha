@@ -2,6 +2,7 @@ package gotcha
 
 import (
 	"net/http"
+	"sync"
 )
 
 type Adapter interface {
@@ -21,9 +22,14 @@ type RequestAdapter struct {
 	//
 	// Defaults to a function that derives the Request from the specified Options.
 	Request func(*Options) *http.Request
+
+	mu sync.Mutex
 }
 
-func (ra *RequestAdapter) DoRequest(options *Options) (*Response, error) {
+// Initializes adapter defaults.
+func (ra *RequestAdapter) init(options *Options) {
+	ra.mu.Lock()
+
 	if ra.Request == nil {
 		ra.Request = func(o *Options) *http.Request {
 			return &http.Request{
@@ -42,6 +48,12 @@ func (ra *RequestAdapter) DoRequest(options *Options) (*Response, error) {
 		}
 		ra.RoundTripper = defaultTransport
 	}
+
+	ra.mu.Unlock()
+}
+
+func (ra *RequestAdapter) DoRequest(options *Options) (*Response, error) {
+	ra.init(options)
 
 	req := ra.Request(options)
 

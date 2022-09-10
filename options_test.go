@@ -96,3 +96,25 @@ func TestOptions_Merge(t *testing.T) {
 		t.Errorf(tests.MismatchFormat, "hook result 'beforeRequestCalled'", true, beforeRequestCalled)
 	}
 }
+
+func TestOptions_Merge_Bool(t *testing.T) {
+	testCases := [2]bool{true, false}
+
+	for _, x := range testCases {
+		parent := &Options{Retry: x}
+
+		for _, y := range testCases {
+			child := &Options{Retry: y}
+
+			merged, err := parent.Extend(child)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			if merged.Retry != child.Retry {
+				t.Errorf(tests.MismatchFormat, "retry", child.Retry, merged.Retry)
+			}
+		}
+	}
+}

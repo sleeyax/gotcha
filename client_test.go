@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	urlPkg "net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -242,6 +243,53 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	}
 	if _, ok := err.(*MaxRedirectsExceededError); !ok {
 		t.Fatal(err)
+	}
+}
+
+func TestClient_DoRequest_Concurrency(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+	}))
+	defer ts.Close()
+
+	client, err := NewClient(&Options{
+		PrefixURL: ts.URL,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+	errCh := make(chan error)
+
+	sendRequest := func() {
+		if _, err := client.Get("test", &Options{
+			SearchParams: urlValues.Values{
+				"foo": {"bar"},
+				"abc": {"def"},
+			},
+		}); err != nil {
+			errCh <- err
+		}
+
+		wg.Done()
+	}
+
+	count := 20
+
+	wg.Add(count)
+
+	for i := 0; i < count; i++ {
+		go sendRequest()
+	}
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err = range errCh {
+		t.Error(err)
 	}
 }
 
