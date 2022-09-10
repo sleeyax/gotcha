@@ -309,8 +309,8 @@ func ExampleNewClient() {
 		fmt.Sprintln("error:", err)
 	}
 
-	json, _ := res.Json()
-	headers := json["headers"].(map[string]interface{})
+	j, _ := res.Json()
+	headers := j["headers"].(map[string]interface{})
 
 	fmt.Println(res.StatusCode)
 	fmt.Println(headers["User-Agent"])
