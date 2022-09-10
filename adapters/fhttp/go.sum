@@ -4,11 +4,8 @@ github.com/andybalholm/brotli v1.0.3 h1:fpcw+r1N1h0Poc1F/pHbW40cUm/lMEQslZtCkBQ0
 github.com/andybalholm/brotli v1.0.3/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
 github.com/imdario/mergo v0.3.12/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
-github.com/sleeyax/gotcha v0.0.2 h1:eiCFjEa4nwl/eZ7etBswDKPQ0bUp8YPbuicCHJtD68I=
-github.com/sleeyax/gotcha v0.0.2/go.mod h1:H2TKsKYJIXgmFGGUqs21FCr1HXVXjNWccX5/WexkLOM=
+github.com/sleeyax/gotcha v0.1.1 h1:zN8jFrtg7GXWFbomVoo5wU4Om2JQriUYiYfpkhL9zQQ=
 github.com/sleeyax/gotcha v0.1.1/go.mod h1:H2TKsKYJIXgmFGGUqs21FCr1HXVXjNWccX5/WexkLOM=
-github.com/useflyent/fhttp v0.0.0-20210801005649-f160dd923789 h1:EnTm6BiUoGxi7fdeHMnSBnDyyKYT0AWq96V3cXouL4s=
-github.com/useflyent/fhttp v0.0.0-20210801005649-f160dd923789/go.mod h1:GTDLTqqiwTuUM1f9bCE/HoHOzBaCtT1Zjkd98vUEwrI=
 github.com/useflyent/fhttp v0.0.0-20211004035111-333f430cfbbf h1:GExHWNOdGk8EmZMiIzJGWkEWEIzlVBHBqg6EZrfnQFk=
 github.com/useflyent/fhttp v0.0.0-20211004035111-333f430cfbbf/go.mod h1:GTDLTqqiwTuUM1f9bCE/HoHOzBaCtT1Zjkd98vUEwrI=
 golang.org/x/net v0.0.0-20210610132358-84b48f89b13b h1:k+E048sYJHyVnsr1GDrRZWQ32D2C7lWs9JRc0bel53A=
