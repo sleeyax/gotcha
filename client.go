@@ -125,8 +125,8 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 			return nil, NewMaxRedirectsExceededError(len(c.Options.redirectUrls))
 		}
 
-		if c.Options.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && c.Options.Method != "GET" && c.Options.Method != "HEAD") {
-			c.Options.Method = "GET"
+		if c.Options.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && c.Options.Method != http.MethodGet && c.Options.Method != http.MethodHead) {
+			c.Options.Method = http.MethodGet
 			c.CloseBody()
 			c.Options.Headers.Del("content-length")
 			c.Options.Headers.Del("content-type")
@@ -264,25 +264,25 @@ func (c *Client) ParseBody() error {
 }
 
 func (c *Client) Get(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("GET", url, options...)
+	return c.DoRequest(http.MethodGet, url, options...)
 }
 
 func (c *Client) Post(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("POST", url, options...)
+	return c.DoRequest(http.MethodPost, url, options...)
 }
 
-func (c *Client) Update(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("UPDATE", url, options...)
+func (c *Client) Put(url string, options ...*Options) (*Response, error) {
+	return c.DoRequest(http.MethodPut, url, options...)
 }
 
 func (c *Client) Patch(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("PATCH", url, options...)
+	return c.DoRequest(http.MethodPatch, url, options...)
 }
 
 func (c *Client) Delete(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("DELETE", url, options...)
+	return c.DoRequest(http.MethodDelete, url, options...)
 }
 
 func (c *Client) Head(url string, options ...*Options) (*Response, error) {
-	return c.DoRequest("HEAD", url, options...)
+	return c.DoRequest(http.MethodHead, url, options...)
 }

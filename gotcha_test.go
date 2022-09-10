@@ -11,7 +11,7 @@ import (
 func TestDoRequest(t *testing.T) {
 	var requested bool
 
-	res, err := DoRequest("https://example.com", "GET", &Options{
+	res, err := DoRequest("https://example.com", http.MethodGet, &Options{
 		Adapter: &mockAdapter{OnCalledDoRequest: func(_ *Options) *Response {
 			requested = true
 			return NewResponse(&http.Response{StatusCode: 200})
@@ -55,8 +55,8 @@ func TestPost(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	_, err := Get("https://example.com", &Options{Adapter: &mockAdapter{OnCalledDoRequest: func(options *Options) *Response {
-		if options.Method != "GET" {
-			t.Fatalf(tests.MismatchFormat, "method", "GET", options.Method)
+		if options.Method != http.MethodGet {
+			t.Fatalf(tests.MismatchFormat, "method", http.MethodGet, options.Method)
 		}
 		return NewResponse(&http.Response{StatusCode: 200})
 	}}})

@@ -157,7 +157,7 @@ func NewDefaultOptions() *Options {
 		URI:          "",
 		Retry:        true,
 		RetryOptions: NewDefaultRetryOptions(),
-		Method:       "GET",
+		Method:       http.MethodGet,
 		PrefixURL:    "",
 		Headers:      make(http.Header),
 		Body:         nil,

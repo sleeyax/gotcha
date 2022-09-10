@@ -16,7 +16,7 @@ func TestOptions_Merge(t *testing.T) {
 	right := &Options{
 		URI:    "example.com",
 		Retry:  true,
-		Method: "POST",
+		Method: http.MethodPost,
 		Headers: http.Header{
 			"Foo": {"Bar"},
 		},

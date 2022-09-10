@@ -50,7 +50,7 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 		Retry: true,
 		RetryOptions: &RetryOptions{
 			Limit:       retriesLeft,
-			Methods:     []string{"GET"},
+			Methods:     []string{http.MethodGet},
 			StatusCodes: []int{500},
 			ErrorCodes:  []string{},
 			RetryAfter:  true,
@@ -67,7 +67,7 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	res, err := client.DoRequest("GET", ts.URL)
+	res, err := client.DoRequest(http.MethodGet, ts.URL)
 	if err == nil {
 		t.Fatalf("request should have failed, but got status code %d", res.StatusCode)
 	}
@@ -231,8 +231,8 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m := res.Request.Method; m != "GET" {
-		t.Fatalf(tests.MismatchFormat, "method", "GET", m)
+	if m := res.Request.Method; m != http.MethodGet {
+		t.Fatalf(tests.MismatchFormat, "method", http.MethodGet, m)
 	}
 
 	// test retry limit

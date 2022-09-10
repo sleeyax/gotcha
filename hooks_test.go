@@ -47,7 +47,7 @@ func TestHooks_BeforeRequest(t *testing.T) {
 		BeforeRequest: []BeforeRequestHook{
 			func(options *Options) {
 				hooked = true
-				options.Method = "POST"
+				options.Method = http.MethodPost
 			},
 		},
 	})
@@ -57,8 +57,8 @@ func TestHooks_BeforeRequest(t *testing.T) {
 		t.FailNow()
 	}
 
-	if m := client.Options.Method; m != "POST" {
-		t.Fatalf(tests.MismatchFormat, "method", "POST", m)
+	if m := client.Options.Method; m != http.MethodPost {
+		t.Fatalf(tests.MismatchFormat, "method", http.MethodPost, m)
 	}
 }
 
