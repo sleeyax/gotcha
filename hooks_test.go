@@ -102,7 +102,7 @@ func TestHooks_BeforeRedirect(t *testing.T) {
 	}
 
 	res, err := client.Get("https://example.com")
-	if _, ok := err.(*MaxRedirectsExceededError); !ok {
+	if err != MaxRetriesExceededError {
 		t.Fatal(err)
 	}
 

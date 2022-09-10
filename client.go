@@ -111,7 +111,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 
 	if o.Retry {
 		if o.retries >= o.RetryOptions.Limit {
-			return res, NewMaxRetriesExceededError()
+			return res, MaxRetriesExceededError
 		}
 
 		if (err != nil && utils.StringArrayContains(o.RetryOptions.ErrorCodes, err.Error())) || (utils.IntArrayContains(o.RetryOptions.StatusCodes, res.StatusCode) && utils.StringArrayContains(o.RetryOptions.Methods, method)) {
@@ -124,7 +124,7 @@ func (c *Client) DoRequest(method string, url string, options ...*Options) (*Res
 		res.Body.Close()
 
 		if o.RedirectOptions.Limit != 0 && len(o.redirectUrls) >= o.RedirectOptions.Limit {
-			return res, NewMaxRedirectsExceededError(len(o.redirectUrls))
+			return res, MaxRetriesExceededError
 		}
 
 		if o.RedirectOptions.RewriteMethods || (res.StatusCode == 303 && o.Method != http.MethodGet && o.Method != http.MethodHead) {

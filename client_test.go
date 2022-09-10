@@ -72,7 +72,7 @@ func TestClient_DoRequest_RetryAfter(t *testing.T) {
 	if err == nil {
 		t.Fatalf("request should have failed, but got status code %d", res.StatusCode)
 	}
-	if _, ok := err.(*MaxRetriesExceededError); !ok {
+	if err != MaxRetriesExceededError {
 		t.Fatal(err)
 	}
 
@@ -241,7 +241,7 @@ func TestClient_DoRequest_Redirect(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected MaxRedirectsExceededError to be non-nil")
 	}
-	if _, ok := err.(*MaxRedirectsExceededError); !ok {
+	if err != MaxRetriesExceededError {
 		t.Fatal(err)
 	}
 }
